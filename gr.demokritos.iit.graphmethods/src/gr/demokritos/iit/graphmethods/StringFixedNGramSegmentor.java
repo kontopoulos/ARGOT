@@ -1,5 +1,6 @@
 package gr.demokritos.iit.graphmethods;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -8,15 +9,34 @@ import java.util.List;
  */
 public class StringFixedNGramSegmentor implements Segmentor {
 
+    private final int ngram;
+
+    public StringFixedNGramSegmentor(int ngram) {
+        this.ngram = ngram;
+    }
+
     /**
      * Segments a string entity into atoms
+     *
      * @param e string entity
-     * @return list of atoms
+     * @return list of string atoms
      */
     @Override
-    public List<Atom> getCompoments(Entity e) {
-        //TODO code here, delete next line
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<StringAtom> getCompoments(Entity e) {
+        StringEntity en = (StringEntity) e;
+        List<StringAtom> atoms = new ArrayList();
+        //begin index of string
+        int begin = 0;
+        //create substrings based on n-gram size
+        for (int i = 1; i <= en.getDataString().length() - ngram + 1; i++) {
+            //end index of string
+            int end = begin + ngram;
+            StringAtom a = new StringAtom();
+            a.setPart("_" + en.getDataString().substring(begin, end));
+            begin++;
+            atoms.add(a);
+        }
+        return atoms;
     }
-    
+
 }

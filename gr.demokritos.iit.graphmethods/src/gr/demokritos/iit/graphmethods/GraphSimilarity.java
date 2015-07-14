@@ -15,8 +15,7 @@ public class GraphSimilarity implements Similarity {
     private double valueSimilarity;
     //value of contaiment similarity
     private double containmentSimilarity;
-    //value of overall similarity
-    private double overallSimilarity;
+    //map containing all the similarities
     private final Map components;
 
     /**
@@ -27,12 +26,12 @@ public class GraphSimilarity implements Similarity {
     }
     
     /**
-     * 
+     * Calculates the overall similarity
      * @return overall similarity
      */
     @Override
     public double getOverallSimilarity() {
-        return overallSimilarity;
+        return sizeSimilarity * valueSimilarity * containmentSimilarity;
     }
 
     /**

@@ -4,31 +4,15 @@ import java.util.Vector;
 
 /**
  *
- * @author JKLS
+ * @author ioannis
  */
-public class Atom {
+public interface Atom {
     
     //label of atom
-    private String label;
+    public static final String label = "";
     //actual atom
-    private Object o1;
+    public static final Object o1  = "";
     //position of atom
-    private Vector position;
-
-    /**
-     * Getter for label
-     * @return label
-     */
-    public String getLabel() {
-        return label;
-    }
-
-    /**
-     * Getter for position
-     * @return position
-     */
-    public Vector getPosition() {
-        return position;
-    }
+    public static final Vector position = null;
     
 }
