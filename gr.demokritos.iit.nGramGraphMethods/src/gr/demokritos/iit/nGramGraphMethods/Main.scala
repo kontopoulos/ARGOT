@@ -12,7 +12,7 @@ object Main extends App {
   override def main(args: Array[String]) {
     println("Hello- World")
     
-    val conf = new SparkConf().setAppName("Graph Methods").setMaster("master")
+    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
     val vertexArray = Array(
       (1L, ("Alice", 28)),
