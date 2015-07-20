@@ -5,8 +5,8 @@ package gr.demokritos.iit.nGramGraphMethods
  */
 trait Atom {
   
-  var label = ""
-  var position = null
-  var obj = null
-  
+  val label = ""
+  val position = null
+  val obj = null
+
 }

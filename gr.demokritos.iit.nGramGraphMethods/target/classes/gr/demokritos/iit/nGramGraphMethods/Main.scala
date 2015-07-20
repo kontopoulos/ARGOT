@@ -6,32 +6,48 @@ import org.apache.spark.graphx._
 import org.apache.spark.rdd.RDD
 
 /**
- * @author JKLS
+ * @author Kontopoulos Ioannis
  */
 object Main extends App {
   override def main(args: Array[String]) {
     println("Hello- World")
-    
-    val conf = new SparkConf().setAppName("Graph Methods").setMaster("master")
+    //tests
+    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
     val vertexArray = Array(
-      (1L, ("Alice", 28)),
-      (2L, ("Bob", 27)),
-      (3L, ("Charlie", 65)),
-      (4L, ("David", 42)),
-      (5L, ("Ed", 55)),
-      (6L, ("Fran", 50)))
+      (1L, ("a", 28)),
+      (2L, ("b", 27)),
+      (3L, ("c", 65))
+    )
     val edgeArray = Array(
-      Edge(2L, 1L, 7),
-      Edge(2L, 4L, 2),
-      Edge(3L, 2L, 4),
-      Edge(3L, 6L, 3),
-      Edge(4L, 1L, 1),
-      Edge(5L, 2L, 2),
-      Edge(5L, 3L, 8),
-      Edge(5L, 6L, 3))
+      Edge(1L, 2L, 1),
+      Edge(2L, 3L, 8)
+    )
     val vertexRDD: RDD[(Long, (String, Int))] = sc.parallelize(vertexArray)
     val edgeRDD: RDD[Edge[Int]] = sc.parallelize(edgeArray)
     val graph: Graph[(String, Int), Int] = Graph(vertexRDD, edgeRDD)
+    val vertexArray2 = Array(
+      (1L, ("a", 28)),
+      (2L, ("b", 27)),
+      (3L, ("c", 28)),
+      (4L, ("d", 27)),
+      (5L, ("e", 65))
+    )
+    val edgeArray2 = Array(
+      Edge(1L, 2L, 1),
+      Edge(2L, 3L, 4),
+      Edge(3L, 5L, 1),
+      Edge(2L, 4L, 1)
+    )
+    val vertexRDD2: RDD[(Long, (String, Int))] = sc.parallelize(vertexArray2)
+    val edgeRDD2: RDD[Edge[Int]] = sc.parallelize(edgeArray2)
+    val graph2: Graph[(String, Int), Int] = Graph(vertexRDD2, edgeRDD2)
+    var gsc = new GraphSimilarityCalculator()
+    //var gs = gsc.getSimilarity(graph, graph2)
+    println(gsc.calculateValueSimilarity(graph, graph2))
   }
+  
+  //def converter(str: String): Long = {
+    
+  //}
 }

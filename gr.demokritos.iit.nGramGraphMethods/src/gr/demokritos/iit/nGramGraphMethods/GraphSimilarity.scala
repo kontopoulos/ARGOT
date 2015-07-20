@@ -3,14 +3,13 @@ package gr.demokritos.iit.nGramGraphMethods
 /**
  * @author Kontopoulos Ioannis
  */
-class GraphSimilarity extends Similarity {
+class GraphSimilarity(var sizeSimilarity: Double) extends Similarity {
   
-  //value of size similarity
-  var sizeSimilarity = 0.0
+  
   //value of value similarity
-  var valueSimilarity = 0.0
+  val valueSimilarity = 0.0
   //value of containment similarity
-  var containmentSimilarity = 0.0
+  val containmentSimilarity = 0.0
   //map containing similarity components
   var components = Map(("size", sizeSimilarity), ("value", valueSimilarity), ("containment", containmentSimilarity))
   

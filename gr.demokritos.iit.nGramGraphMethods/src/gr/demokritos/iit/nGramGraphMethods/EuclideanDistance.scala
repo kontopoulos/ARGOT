@@ -3,8 +3,7 @@ package gr.demokritos.iit.nGramGraphMethods
 /**
  * @author Kontopoulos Ioannis
  */
-class EuclideanDistance extends Distance {
-  
+class EuclideanDistance extends Distance {  
   /**
    * Calculates euclidean distance between two objects
    */
