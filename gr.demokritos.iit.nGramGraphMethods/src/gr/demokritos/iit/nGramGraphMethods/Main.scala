@@ -10,7 +10,6 @@ import org.apache.spark.rdd.RDD
  */
 object Main extends App {
   override def main(args: Array[String]) {
-    println("Hello- World")
     //tests
     val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
@@ -46,8 +45,5 @@ object Main extends App {
     //var gs = gsc.getSimilarity(graph, graph2)
     println(gsc.calculateValueSimilarity(graph, graph2))
   }
-  
-  //def converter(str: String): Long = {
-    
-  //}
+
 }

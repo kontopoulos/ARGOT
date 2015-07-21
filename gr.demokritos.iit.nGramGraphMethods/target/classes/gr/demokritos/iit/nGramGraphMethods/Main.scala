@@ -10,7 +10,6 @@ import org.apache.spark.rdd.RDD
  */
 object Main extends App {
   override def main(args: Array[String]) {
-    println("Hello- World")
     //tests
     val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
