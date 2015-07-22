@@ -1,8 +1,6 @@
 package gr.demokritos.iit.nGramGraphMethods
 
-import org.apache.commons.math.stat.descriptive.rank.Max
 import org.apache.spark.graphx._
-import org.apache.spark.rdd.RDD
 
 /**
  * @author Kontopoulos Ioannis
@@ -15,8 +13,8 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    * @param g2 graph2
    * @return Similarity
    */
-  override def getSimilarity(g1: Graph[(String, Int), Int], g2: Graph[(String, Int), Int]) = {
-    var gs = new GraphSimilarity(calculateSizeSimilarity(g1, g2))
+  override def getSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Similarity = {
+    val gs = new GraphSimilarity(calculateSizeSimilarity(g1, g2), calculateValueSimilarity(g1, g2), calculateContainmentSimilarity(g1, g2))
     gs
   }
 
@@ -26,7 +24,7 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    * @param g2 graph2
    * @return size similarity
    */
-  def calculateSizeSimilarity(g1: Graph[(String, Int), Int], g2: Graph[(String, Int), Int]): Double = {
+  private def calculateSizeSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Double = {
     //number of edges of graph1
     val eNum1 = g1.numEdges
     //number of edges of graph2
@@ -42,7 +40,7 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    * @param g2 graph2
    * @return value similarity
    */
-  def calculateValueSimilarity(g1: Graph[(String, Int), Int], g2: Graph[(String, Int), Int]): Double = {
+  private def calculateValueSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Double = {
     //number of edges of graph1
     val eNum1 = g1.numEdges
     //number of edges of graph2
@@ -52,10 +50,10 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
     //get the number of edges of larger graph
     if (eNum1 > eNum2) max = eNum1
     else max = eNum2
-    var min1: Int = Int.MaxValue
-    var min2: Int = Int.MaxValue
-    var max1: Int = 0
-    var max2: Int = 0
+    var min1: Double = Double.MaxValue
+    var min2: Double = Double.MaxValue
+    var max1: Double = 0.0
+    var max2: Double = 0.0
     //find min edge weight of graph1
     for (i <- 1L to g1.numEdges) {
       if (!g1.edges.filter { case Edge(src, dst, attr) => attr < min1 }.isEmpty()) {
@@ -80,8 +78,8 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
         max2 = g2.edges.filter { case Edge(src, dst, attr) => attr > max2 }.first().attr
       }
     }
-    var maximum: Long = 0
-    var minimum: Long = 0
+    var maximum: Double = 0.0
+    var minimum: Double = 0.0
     if(min1 < min2) minimum = min1
     else minimum = min2
     if(max1 > max2) maximum = max1
@@ -104,7 +102,7 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    * @param g2 graph2
    * @return containment similarity
    */
-  def calculateContainmentSimilarity(g1: Graph[(String, Int), Int], g2: Graph[(String, Int), Int]): Double = {
+  private def calculateContainmentSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Double = {
     //number of edges of graph1
     val eNum1 = g1.numEdges
     //number of edges of graph2

@@ -14,36 +14,40 @@ object Main extends App {
     val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
     val vertexArray = Array(
-      (1L, ("a", 28)),
-      (2L, ("b", 27)),
-      (3L, ("c", 65))
+      (1L, ("a")),
+      (2L, ("b")),
+      (3L, ("c"))
     )
     val edgeArray = Array(
-      Edge(1L, 2L, 1),
-      Edge(2L, 3L, 8)
+      Edge(1L, 2L, 1.0),
+      Edge(2L, 3L, 8.0)
     )
-    val vertexRDD: RDD[(Long, (String, Int))] = sc.parallelize(vertexArray)
-    val edgeRDD: RDD[Edge[Int]] = sc.parallelize(edgeArray)
-    val graph: Graph[(String, Int), Int] = Graph(vertexRDD, edgeRDD)
+    val vertexRDD: RDD[(Long, (String))] = sc.parallelize(vertexArray)
+    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edgeArray)
+    val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD)
     val vertexArray2 = Array(
-      (1L, ("a", 28)),
-      (2L, ("b", 27)),
-      (3L, ("c", 28)),
-      (4L, ("d", 27)),
-      (5L, ("e", 65))
+      (1L, ("a")),
+      (2L, ("b")),
+      (3L, ("c")),
+      (4L, ("d")),
+      (5L, ("e"))
     )
     val edgeArray2 = Array(
-      Edge(1L, 2L, 1),
-      Edge(2L, 3L, 4),
-      Edge(3L, 5L, 1),
-      Edge(2L, 4L, 1)
+      Edge(1L, 2L, 1.0),
+      Edge(2L, 3L, 4.0),
+      Edge(3L, 5L, 1.0),
+      Edge(2L, 4L, 1.0)
     )
-    val vertexRDD2: RDD[(Long, (String, Int))] = sc.parallelize(vertexArray2)
-    val edgeRDD2: RDD[Edge[Int]] = sc.parallelize(edgeArray2)
-    val graph2: Graph[(String, Int), Int] = Graph(vertexRDD2, edgeRDD2)
-    var gsc = new GraphSimilarityCalculator()
-    //var gs = gsc.getSimilarity(graph, graph2)
-    println(gsc.calculateValueSimilarity(graph, graph2))
+    val vertexRDD2: RDD[(Long, (String))] = sc.parallelize(vertexArray2)
+    val edgeRDD2: RDD[Edge[Double]] = sc.parallelize(edgeArray2)
+    val graph2: Graph[String, Double] = Graph(vertexRDD2, edgeRDD2)
+
+
+
+    //Use of similarities
+    //val gsc = new GraphSimilarityCalculator()
+    //val gs = gsc.getSimilarity(graph, graph2)
+    //println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment"))
   }
 
 }
