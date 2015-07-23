@@ -50,35 +50,25 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
     //get the number of edges of larger graph
     if (eNum1 > eNum2) max = eNum1
     else max = eNum2
+    //min1 holds the smallest number of edges from graph1
     var min1: Double = Double.MaxValue
+    //min2 holds the smallest number of edges from graph2
     var min2: Double = Double.MaxValue
+    //max1 holds the bigger number of edges from graph1
     var max1: Double = 0.0
+    //max2 holds the bigger number of edges from graph2
     var max2: Double = 0.0
     //find min edge weight of graph1
-    for (i <- 1L to g1.numEdges) {
-      if (!g1.edges.filter { case Edge(src, dst, attr) => attr < min1 }.isEmpty()) {
-        min1 = g1.edges.filter { case Edge(src, dst, attr) => attr < min1 }.first().attr
-      }
-    }
+    g1.edges.collect.foreach{ e => if (e.attr < min1) min1 = e.attr }
     //find min edge weight of graph2
-    for (i <- 1L to g2.numEdges) {
-      if (!g2.edges.filter { case Edge(src, dst, attr) => attr < min2 }.isEmpty()) {
-        min2 = g2.edges.filter { case Edge(src, dst, attr) => attr < min2 }.first().attr
-      }
-    }
+    g2.edges.collect.foreach{ e => if (e.attr < min2) min2 = e.attr }
     //find max edge weight of graph1
-    for (i <- 1L to g1.numEdges) {
-      if (!g1.edges.filter { case Edge(src, dst, attr) => attr > max1 }.isEmpty()) {
-        max1 = g1.edges.filter { case Edge(src, dst, attr) => attr > max1 }.first().attr
-      }
-    }
+    g1.edges.collect.foreach{ e => if (e.attr > max1) max1 = e.attr }
     //find max edge weight of graph2
-    for (i <- 1L to g2.numEdges) {
-      if (!g2.edges.filter { case Edge(src, dst, attr) => attr > max2 }.isEmpty()) {
-        max2 = g2.edges.filter { case Edge(src, dst, attr) => attr > max2 }.first().attr
-      }
-    }
+    g2.edges.collect.foreach{ e => if (e.attr > max2) max2 = e.attr }
+    //maximum holds the largest weight between the two max weights
     var maximum: Double = 0.0
+    //minimum holds the smallest weight between the two min weights
     var minimum: Double = 0.0
     if(min1 < min2) minimum = min1
     else minimum = min2

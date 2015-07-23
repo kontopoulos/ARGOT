@@ -8,6 +8,6 @@ import org.apache.spark.graphx.Graph
 trait BinaryGraphOperator {
   
   //@return graph after specific operation
-  def getResult(g1: Graph[(String, Int), Int], g2: Graph[(String, Int), Int]): Graph[(String, Int), Int]
+  def getResult(g1: Graph[String, Double], g2: Graph[String, Double]): Graph[String, Double]
   
 }
