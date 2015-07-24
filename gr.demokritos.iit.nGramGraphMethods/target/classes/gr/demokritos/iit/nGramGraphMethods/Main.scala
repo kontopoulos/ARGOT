@@ -44,10 +44,21 @@ object Main extends App {
 
 
 
-    //Use of delta operator
-    val op = new GraphDeltaOperator
-    val g = op.getResult(graph2, graph)
+
+    //Use of Intersector
+    val i = new GraphIntersector(0.3)
+    val g = i.getResult(graph, graph2)
     g.edges.collect.foreach(println)
+
+    //Use of Inverse Intersector
+    //val ii = new GraphInverseIntersector
+    //val g = ii.getResult(graph, graph2)
+    //g.edges.collect.foreach(println)
+
+    //Use of delta operator
+    //val op = new GraphDeltaOperator
+    //val g = op.getResult(graph, graph2)
+    //g.edges.collect.foreach(println)
 
     //Use of similarities
     //val gsc = new GraphSimilarityCalculator

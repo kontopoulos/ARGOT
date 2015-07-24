@@ -1,31 +1,88 @@
 package gr.demokritos.iit.nGramGraphMethods
 
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkConf
 import org.apache.spark.graphx._
-import org.apache.spark.rdd.RDD
 
 /**
  * @author Kontopoulos Ioannis
+ * @param l the learning factor
  */
-class GraphIntersector extends BinaryGraphOperator {
-  //not actual implementation
-  //just basic in order not to have compile errors
-  val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
-  val sc = new SparkContext(conf)
+class GraphIntersector(val l: Double) extends BinaryGraphOperator {
+
+  /**
+   * Creates a graph which contains the common edges with averaged edge weights
+   * @param g1 graph1
+   * @param g2 graph2
+   * @return graph
+   */
   def getResult(g1: Graph[String, Double], g2: Graph[String, Double]): Graph[String, Double] = {
-    val vertexArray = Array(
-      (1L, ("a")),
-      (2L, ("b")),
-      (3L, ("c"))
-    )
-    val edgeArray = Array(
-      Edge(1L, 2L, 1.0),
-      Edge(2L, 3L, 8.0)
-    )
-    val vertexRDD: RDD[(Long, (String))] = sc.parallelize(vertexArray)
-    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edgeArray)
-    val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD)
-    graph
+    //m holds the edges from the first graph
+    var m: Map[String, Tuple3[Long, Long, Double]] = Map()
+    //collect edges from the first graph
+    g1.edges.collect.foreach { e => m += (e.srcId + "," + e.dstId -> new Tuple3(e.srcId, e.dstId, e.attr)) }
+    //m2 holds the edges from the second graph
+    var m2: Map[String, Tuple3[Long, Long, Double]] = Map()
+    //collect edges from the second graph
+    g2.edges.collect.foreach { e => m2 += (e.srcId + "," + e.dstId -> new Tuple3(e.srcId, e.dstId, e.attr)) }
+    //map holds the common edges
+    var map: Map[String, Tuple3[Long, Long, Double]] = Map()
+    if (m.size > m2.size) {
+      //search for the common edges, if it does not exist add the key from the other in order not to have exception in the subgraph method
+      m.keys.foreach { i => if (m2.contains(i)) map += (i -> m(i)) else map += (i -> new Tuple3(0L, 0L, 0.0)) }
+    }
+    //search for the common edges, if it does not exist add the key from the other in order not to have exception in the subgraph method
+    else {
+      m2.keys.foreach { i => if (m.contains(i)) map += (i -> m2(i)) else map += (i -> new Tuple3(0L, 0L, 0.0)) }
+    }
+    var mMap: Map[String, Tuple3[Long, Long, Double]] = Map()
+    if (m.size > m2.size) {
+    mMap ++= calculateNewWeights(map, m, m2)
+    }
+    else {
+      mMap ++= calculateNewWeights(map, m2, m)
+    }
+    //the if statement exists in order to always subgraph the smallest graph and there are no redundant vertices
+    if(g1.numEdges < g2.numEdges) {
+      val newG = g1.subgraph(epred = e => e.srcId == mMap(e.srcId + "," + e.dstId)._1 && e.dstId == mMap(e.srcId + "," + e.dstId)._2)
+      //assign the proper edge weights
+      val n = newG.mapEdges(e => e.attr * 0 + mMap(e.srcId + "," + e.dstId)._3)
+      n
+    }
+    else {
+      val newG = g2.subgraph(epred = e => e.srcId == mMap(e.srcId + "," + e.dstId)._1 && e.dstId == mMap(e.srcId + "," + e.dstId)._2)
+      //assign the proper edge weights
+      val n = newG.mapEdges(e => e.attr * 0 + mMap(e.srcId + "," + e.dstId)._3)
+      n
+    }
   }
+
+  /**
+   * Calculates the edge weights based on the learning factor
+   * @param map contains the common edges
+   * @param m contains the edges of first graph
+   * @param m2 contains the edges of second graph
+   * @return map with proper edge weights
+   */
+  private def calculateNewWeights(map: Map[String, Tuple3[Long, Long, Double]], m: Map[String, Tuple3[Long, Long, Double]], m2: Map[String, Tuple3[Long, Long, Double]]): collection.mutable.Map[String, Tuple3[Long, Long, Double]] = {
+    var mMap = collection.mutable.Map[String, Tuple3[Long, Long, Double]]() ++= map
+    mMap.keys.foreach {
+      i =>
+        if (m2.contains(i)) {
+          if (m(i)._3 > m2(i)._3) {
+            //updatedValue = oldValue + l*(newValue - oldValue)
+            val u = m2(i)._3 + l * (m(i)._3 - m2(i)._3)
+            mMap += (i -> new Tuple3(m(i)._1, m(i)._2, u))
+          }
+          else {
+            //updatedValue = oldValue + l*(newValue - oldValue)
+            val u = m(i)._3 + l * (m2(i)._3 - m(i)._3)
+            mMap += (i -> new Tuple3(m(i)._1, m(i)._2, u))
+          }
+        }
+        else {
+          mMap += (i -> new Tuple3(0L, 0L, 0.0))
+        }
+    }
+    mMap
+  }
+
 }
