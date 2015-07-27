@@ -23,16 +23,13 @@ class GraphIntersector(val l: Double) extends BinaryGraphOperator {
     var m2: Map[String, Tuple3[Long, Long, Double]] = Map()
     //collect edges from the second graph
     g2.edges.collect.foreach { e => m2 += (e.srcId + "," + e.dstId -> new Tuple3(e.srcId, e.dstId, e.attr)) }
-    //map holds the common edges
+    //map holds all of the edges, with real values only from common edges
     var map: Map[String, Tuple3[Long, Long, Double]] = Map()
-    if (m.size > m2.size) {
-      //search for the common edges, if it does not exist add the key from the other in order not to have exception in the subgraph method
-      m.keys.foreach { i => if (m2.contains(i)) map += (i -> m(i)) else map += (i -> new Tuple3(0L, 0L, 0.0)) }
-    }
     //search for the common edges, if it does not exist add the key from the other in order not to have exception in the subgraph method
-    else {
-      m2.keys.foreach { i => if (m.contains(i)) map += (i -> m2(i)) else map += (i -> new Tuple3(0L, 0L, 0.0)) }
-    }
+    m.keys.foreach { i => if (m2.contains(i)) map += (i -> m(i)) else map += (i -> new Tuple3(0L, 0L, 0.0)) }
+    //search for the common edges, if it does not exist add the key from the other in order not to have exception in the subgraph method
+    m2.keys.foreach { i => if (m.contains(i)) map += (i -> m2(i)) else map += (i -> new Tuple3(0L, 0L, 0.0)) }
+    //mMap holds all of the edges, with proper values of common edges
     var mMap: Map[String, Tuple3[Long, Long, Double]] = Map()
     if (m.size > m2.size) {
     mMap ++= calculateNewWeights(map, m, m2)
@@ -40,19 +37,10 @@ class GraphIntersector(val l: Double) extends BinaryGraphOperator {
     else {
       mMap ++= calculateNewWeights(map, m2, m)
     }
-    //the if statement exists in order to always subgraph the smallest graph and there are no redundant vertices
-    if(g1.numEdges < g2.numEdges) {
-      val newG = g1.subgraph(epred = e => e.srcId == mMap(e.srcId + "," + e.dstId)._1 && e.dstId == mMap(e.srcId + "," + e.dstId)._2)
-      //assign the proper edge weights
-      val n = newG.mapEdges(e => e.attr * 0 + mMap(e.srcId + "," + e.dstId)._3)
-      n
-    }
-    else {
-      val newG = g2.subgraph(epred = e => e.srcId == mMap(e.srcId + "," + e.dstId)._1 && e.dstId == mMap(e.srcId + "," + e.dstId)._2)
-      //assign the proper edge weights
-      val n = newG.mapEdges(e => e.attr * 0 + mMap(e.srcId + "," + e.dstId)._3)
-      n
-    }
+    val newG = g1.mask(g2)
+    //assign the proper edge weights
+    val n = newG.mapEdges(e => e.attr * 0 + mMap(e.srcId + "," + e.dstId)._3)
+    n
   }
 
   /**
@@ -66,7 +54,7 @@ class GraphIntersector(val l: Double) extends BinaryGraphOperator {
     var mMap = collection.mutable.Map[String, Tuple3[Long, Long, Double]]() ++= map
     mMap.keys.foreach {
       i =>
-        if (m2.contains(i)) {
+        if (m2.contains(i) && m.contains(i)) {
           if (m(i)._3 > m2(i)._3) {
             //updatedValue = oldValue + l*(newValue - oldValue)
             val u = m2(i)._3 + l * (m(i)._3 - m2(i)._3)
@@ -78,8 +66,11 @@ class GraphIntersector(val l: Double) extends BinaryGraphOperator {
             mMap += (i -> new Tuple3(m(i)._1, m(i)._2, u))
           }
         }
+        else if(m2.contains(i)) {
+          mMap += (i -> new Tuple3(m2(i)._1, m2(i)._2, m2(i)._3))
+        }
         else {
-          mMap += (i -> new Tuple3(0L, 0L, 0.0))
+          mMap += (i -> new Tuple3(m(i)._1, m(i)._2, m(i)._3))
         }
     }
     mMap

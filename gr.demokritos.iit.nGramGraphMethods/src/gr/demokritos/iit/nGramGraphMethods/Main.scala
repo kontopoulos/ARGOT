@@ -14,9 +14,9 @@ object Main extends App {
     val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
     val vertexArray = Array(
-      (1L, ("a")),
-      (2L, ("b")),
-      (3L, ("c"))
+      (1L, "a"),
+      (2L, "b"),
+      (3L, "c")
     )
     val edgeArray = Array(
       Edge(1L, 2L, 1.0),
@@ -26,11 +26,11 @@ object Main extends App {
     val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edgeArray)
     val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD)
     val vertexArray2 = Array(
-      (1L, ("a")),
-      (2L, ("b")),
-      (3L, ("c")),
-      (4L, ("d")),
-      (5L, ("e"))
+      (1L, "a"),
+      (2L, "b"),
+      (3L, "c"),
+      (4L, "d"),
+      (5L, "e")
     )
     val edgeArray2 = Array(
       Edge(1L, 2L, 1.0),
@@ -42,23 +42,29 @@ object Main extends App {
     val edgeRDD2: RDD[Edge[Double]] = sc.parallelize(edgeArray2)
     val graph2: Graph[String, Double] = Graph(vertexRDD2, edgeRDD2)
 
-
-
+    //Use of Merger
+    //println("====Merge Graphs====")
+    //val m = new GraphMerger(0.5)
+    //val g1 = m.getResult(graph, graph2)
+    //g1.edges.collect.foreach(println)
 
     //Use of Intersector
+    //println("====Intersect Graphs====")
     //val i = new GraphIntersector(0.5)
-    //val g = i.getResult(graph, graph2)
-    //g.edges.collect.foreach(println)
+    //val g2 = i.getResult(graph, graph2)
+    //g2.edges.collect.foreach(println)
 
     //Use of Inverse Intersector
+    //println("====Inverse Intersect Graphs====")
     //val ii = new GraphInverseIntersector
-    //val g = ii.getResult(graph, graph2)
-    //g.edges.collect.foreach(println)
+    //val g3 = ii.getResult(graph, graph2)
+    //g3.edges.collect.foreach(println)
 
     //Use of delta operator
+    //println("====Delta Operator upon Graphs====")
     //val op = new GraphDeltaOperator
-    //val g = op.getResult(graph, graph2)
-    //g.edges.collect.foreach(println)
+    //val g4 = op.getResult(graph, graph2)
+    //g4.edges.collect.foreach(println)
 
     //Use of similarities
     //val gsc = new GraphSimilarityCalculator
