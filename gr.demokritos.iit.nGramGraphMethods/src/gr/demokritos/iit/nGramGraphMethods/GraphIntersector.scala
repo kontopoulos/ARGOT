@@ -66,12 +66,6 @@ class GraphIntersector(val l: Double) extends BinaryGraphOperator {
             mMap += (i -> new Tuple3(m(i)._1, m(i)._2, u))
           }
         }
-        else if(m2.contains(i)) {
-          mMap += (i -> new Tuple3(m2(i)._1, m2(i)._2, m2(i)._3))
-        }
-        else {
-          mMap += (i -> new Tuple3(m(i)._1, m(i)._2, m(i)._3))
-        }
     }
     mMap
   }

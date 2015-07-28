@@ -11,7 +11,7 @@ import org.apache.spark.rdd.RDD
 object Main extends App {
   override def main(args: Array[String]) {
     //tests
-    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
+   /* val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
     val vertexArray = Array(
       (1L, "a"),
@@ -40,7 +40,24 @@ object Main extends App {
     )
     val vertexRDD2: RDD[(Long, String)] = sc.parallelize(vertexArray2)
     val edgeRDD2: RDD[Edge[Double]] = sc.parallelize(edgeArray2)
-    val graph2: Graph[String, Double] = Graph(vertexRDD2, edgeRDD2)
+    val graph2: Graph[String, Double] = Graph(vertexRDD2, edgeRDD2)*/
+
+
+    val e = new StringEntity
+    e.dataString = "Hello World!"
+    val seg = new StringFixedNGramSegmentor(3)
+    val a = seg.getComponents(e)
+    val at = a.map{ case i:StringAtom => i }
+    //at.foreach(i => println("label: " + i.label.foldLeft(1L)(_ * _.toInt) + " data: " + i.dataStream))
+    var vertices = Array.empty[Tuple2[Long, String]]
+    at.foreach{
+      i =>
+        if(!(vertices contains (i.label.foldLeft(1L)(_ * _.toInt), i.dataStream))) {
+         vertices = vertices ++ Array((i.label.foldLeft(1L)(_ * _.toInt), i.dataStream))
+        }
+    }
+    vertices.foreach(println)
+
 
     //Use of Merger
     //println("====Merge Graphs====")
