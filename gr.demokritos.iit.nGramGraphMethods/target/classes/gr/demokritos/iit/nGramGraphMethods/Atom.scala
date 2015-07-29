@@ -5,5 +5,4 @@ package gr.demokritos.iit.nGramGraphMethods
  */
 trait Atom {
 
-
 }
