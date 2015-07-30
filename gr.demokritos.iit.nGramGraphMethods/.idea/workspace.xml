@@ -26,8 +26,8 @@
       <file leaf-file-name="Main.scala" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/Main.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.75463915">
-              <caret line="22" column="35" selection-start-line="22" selection-start-column="35" selection-end-line="22" selection-end-column="35" />
+            <state vertical-scroll-proportion="0.385567">
+              <caret line="11" column="6" selection-start-line="11" selection-start-column="6" selection-end-line="11" selection-end-column="6" />
               <folding>
                 <element signature="e#45#81#0" expanded="true" />
               </folding>
@@ -57,10 +57,10 @@
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/Atom.scala" />
         <option value="$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/GraphCreator.scala" />
-        <option value="$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/NGramGraphCreator.scala" />
         <option value="$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/StringFixedNGramSegmentor.scala" />
-        <option value="$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/Main.scala" />
         <option value="$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/StringEntity.scala" />
+        <option value="$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/NGramGraphCreator.scala" />
+        <option value="$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/Main.scala" />
       </list>
     </option>
   </component>
@@ -108,8 +108,9 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="Scratches" />
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -148,7 +149,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -741,7 +741,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-2.5185184">
           <caret line="4" column="35" selection-start-line="4" selection-start-column="35" selection-end-line="4" selection-end-column="35" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -808,13 +807,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/NGramGraphCreator.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.6474227">
-          <caret line="47" column="100" selection-start-line="47" selection-start-column="100" selection-end-line="47" selection-end-column="100" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/GraphMerger.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.385567">
@@ -824,7 +816,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/StringFixedNGramSegmentor.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.24536082">
+        <state vertical-scroll-proportion="-1.7340206">
           <caret line="7" column="41" selection-start-line="7" selection-start-column="41" selection-end-line="7" selection-end-column="41" />
           <folding />
         </state>
@@ -838,10 +830,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/NGramGraphCreator.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.6474227">
+          <caret line="49" column="91" selection-start-line="49" selection-start-column="91" selection-end-line="49" selection-end-column="91" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/gr/demokritos/iit/nGramGraphMethods/Main.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.75463915">
-          <caret line="22" column="35" selection-start-line="22" selection-start-column="35" selection-end-line="22" selection-end-column="35" />
+        <state vertical-scroll-proportion="0.385567">
+          <caret line="11" column="6" selection-start-line="11" selection-start-column="6" selection-end-line="11" selection-end-column="6" />
           <folding>
             <element signature="e#45#81#0" expanded="true" />
           </folding>

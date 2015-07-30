@@ -43,16 +43,14 @@ class NGramGraphCreator(val ngram:Int, val dwin:Int, val sc:SparkContext) extend
     for(j <- 0 to e.getEntityComponents.size - 1) {
       for(i <- 1 to dwin) {
         if((j+i) < e.getEntityComponents.size) {
-          if(en.getEntityComponents(j).label != en.getEntityComponents(j+i).label) {
-            //because a common edge is the one which connects same vertices
-            //if an inverse srcId and dstId is found, inverse it so we can consider it a common edge
-            if(!m.contains(en.getEntityComponents(j+i).label + "," + en.getEntityComponents(j).label)) {
-              edges = edges ++ Array(Edge(en.getEntityComponents(j).label.toLong, en.getEntityComponents(j+i).label.toLong, 1.0))
-              m += (en.getEntityComponents(j).label + "," + en.getEntityComponents(j+i) -> new Tuple2(en.getEntityComponents(j).label.toLong, en.getEntityComponents(j+i).label.toLong))
-            }
-            else {
-              edges = edges ++ Array(Edge(en.getEntityComponents(j+i).label.toLong, en.getEntityComponents(j).label.toLong, 1.0))
-            }
+          //because a common edge is the one which connects same vertices
+          //if an inverse srcId and dstId is found, inverse it so we can consider it a common edge
+          if(!m.contains(en.getEntityComponents(j+i).label + "," + en.getEntityComponents(j).label)) {
+            edges = edges ++ Array(Edge(en.getEntityComponents(j).label.toLong, en.getEntityComponents(j+i).label.toLong, 1.0))
+            m += (en.getEntityComponents(j).label + "," + en.getEntityComponents(j+i).label -> new Tuple2(0L, 0L))
+          }
+          else {
+            edges = edges ++ Array(Edge(en.getEntityComponents(j+i).label.toLong, en.getEntityComponents(j).label.toLong, 1.0))
           }
         }
       }

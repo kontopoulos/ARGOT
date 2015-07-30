@@ -9,22 +9,21 @@ import org.apache.spark.SparkConf
 object Main extends App {
   override def main(args: Array[String]) {
     //tests
-    /*val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
+    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
 
     val e = new StringEntity
     e.dataString = "Hello World!"
     val nggc = new NGramGraphCreator(3, 3, sc)
     val ngg = nggc.getGraph(e)
+    ngg.vertices.foreach(println)
+    ngg.edges.foreach(println)
+    println(ngg.numEdges)
 
-    val en = new StringEntity
-    en.dataString = "Hello Planet."
-    val nggc2 = new NGramGraphCreator(3, 3, sc)
-    val ngg2 = nggc2.getGraph(en)*/
-
-    var e = new StringEntity
-    e.readDataStringFromFile("test.txt")
-    println(e.dataString)
+    //val en = new StringEntity
+    //en.dataString = "Hello Planet."
+    //val nggc2 = new NGramGraphCreator(3, 3, sc)
+    //val ngg2 = nggc2.getGraph(en)
 
 
 
