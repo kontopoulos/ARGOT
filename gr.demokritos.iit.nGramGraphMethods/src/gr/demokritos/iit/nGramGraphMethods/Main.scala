@@ -16,6 +16,8 @@ object Main extends App {
     e.dataString = "Hello World!"
     val nggc = new NGramGraphCreator(3, 3, sc)
     val ngg = nggc.getGraph(e)
+    ngg.vertices.foreach(println)
+    ngg.edges.foreach(println)
 
     val en = new StringEntity
     en.dataString = "Hello Planet."

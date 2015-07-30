@@ -13,12 +13,11 @@ object Main extends App {
     val sc = new SparkContext(conf)
 
     val e = new StringEntity
-    e.dataString = "Hello World!"
-    val nggc = new NGramGraphCreator(3, 3, sc)
+    e.dataString = "abccba"
+    val nggc = new NGramGraphCreator(1, 3, sc)
     val ngg = nggc.getGraph(e)
     ngg.vertices.foreach(println)
     ngg.edges.foreach(println)
-    println(ngg.numEdges)
 
     //val en = new StringEntity
     //en.dataString = "Hello Planet."
