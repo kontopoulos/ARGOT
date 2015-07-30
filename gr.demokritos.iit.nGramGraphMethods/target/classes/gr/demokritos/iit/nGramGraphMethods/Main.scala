@@ -9,18 +9,22 @@ import org.apache.spark.SparkConf
 object Main extends App {
   override def main(args: Array[String]) {
     //tests
-    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
+    /*val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
 
     val e = new StringEntity
-    e.dataString = "Hello World! This is the first time I ever use apache spark. Please be patient..."
-    val nggc = new NGramGraphCreator(7, 3, sc)
+    e.dataString = "Hello World!"
+    val nggc = new NGramGraphCreator(3, 3, sc)
     val ngg = nggc.getGraph(e)
 
     val en = new StringEntity
-    en.dataString = "Hello Planet. I am using apache spark for the first time, so please be patient..."
-    val nggc2 = new NGramGraphCreator(7, 3, sc)
-    val ngg2 = nggc2.getGraph(en)
+    en.dataString = "Hello Planet."
+    val nggc2 = new NGramGraphCreator(3, 3, sc)
+    val ngg2 = nggc2.getGraph(en)*/
+
+    var e = new StringEntity
+    e.readDataStringFromFile("test.txt")
+    println(e.dataString)
 
 
 
@@ -49,9 +53,9 @@ object Main extends App {
     //g4.edges.collect.foreach(println)
 
     //Use of similarities
-    val gsc = new GraphSimilarityCalculator
-    val gs = gsc.getSimilarity(ngg, ngg2)
-    println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment"))
+    //val gsc = new GraphSimilarityCalculator
+    //val gs = gsc.getSimilarity(ngg, ngg2)
+    //println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment"))
   }
 
 }

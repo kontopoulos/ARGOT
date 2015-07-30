@@ -15,8 +15,15 @@ class StringEntity extends Entity {
 
   def setEntityComponents(list: List[StringAtom]): Unit = components = list
 
-  def readDataStringFromFile(): Unit = {
-    println("Not supported yet.")
+  def readDataStringFromFile(file: String): Unit = {
+    try {
+      val source = scala.io.Source.fromFile(file)
+      dataString = source.mkString
+      source.close()
+    }
+    catch {
+      case ex: Exception => println(ex.getMessage)
+    }
   }
   
   override def getPayload: Unit = println("Not supported yet.")

@@ -5,6 +5,7 @@ package gr.demokritos.iit.nGramGraphMethods
  */
 class StringFixedNGramSegmentor(val ngram: Int) extends Segmentor {
 
+  //create vertex ids based on characters
   val chars = Map(
     "a" -> "0",
     "b" -> "1",
@@ -117,11 +118,11 @@ class StringFixedNGramSegmentor(val ngram: Int) extends Segmentor {
     for (i <- 1 to en.dataString.length() - ngram + 1) {
       //end index of string
       val end = begin + ngram
-      val str = "_" + en.dataString.substring(begin, end)
+      val str = en.dataString.substring(begin, end)
       var label = ""
       //match each character with its corresponding number
       str.foreach{ c => label = label + chars(c.toString) }
-      atoms :::= List(new StringAtom(label, str))
+      atoms :::= List(new StringAtom(label, "_" + str))
       begin += 1
     }
     atoms.reverse
