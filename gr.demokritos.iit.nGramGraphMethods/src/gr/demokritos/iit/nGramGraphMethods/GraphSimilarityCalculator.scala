@@ -1,6 +1,6 @@
 package gr.demokritos.iit.nGramGraphMethods
 
-import org.apache.spark.graphx._
+import org.apache.spark.graphx.Graph
 
 /**
  * @author Kontopoulos Ioannis
