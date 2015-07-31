@@ -120,8 +120,8 @@ class StringFixedNGramSegmentor(val ngram: Int) extends Segmentor {
       val end = begin + ngram
       val str = en.dataString.substring(begin, end)
       var label = ""
-      //match each character with its corresponding number
-      str.foreach{ c => label = label + chars(c.toString) }
+      //match each character with its corresponding unicode number
+      str.foreach{ c => label = label + c.toString.foldLeft(1L)(_ * _.toInt) }
       atoms :::= List(new StringAtom(label, "_" + str))
       begin += 1
     }
