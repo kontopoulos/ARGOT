@@ -1,6 +1,6 @@
 package gr.demokritos.iit.nGramGraphMethods
 
-import org.apache.spark.graphx._
+import org.apache.spark.graphx.Graph
 
 /**
  * @author Kontopoulos Ioannis
@@ -26,9 +26,9 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    */
   private def calculateSizeSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Double = {
     //number of edges of graph1
-    val eNum1 = g1.numEdges
+    val eNum1 = g1.edges.distinct.count
     //number of edges of graph2
-    val eNum2 = g2.numEdges
+    val eNum2 = g2.edges.distinct.count
     //calculate size similarity
     if (eNum1 > eNum2) eNum2.toDouble/eNum1
     else eNum1.toDouble/eNum2
@@ -42,9 +42,9 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    */
   private def calculateValueSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Double = {
     //number of edges of graph1
-    val eNum1 = g1.numEdges
+    val eNum1 = g1.edges.distinct.count
     //number of edges of graph2
-    val eNum2 = g2.numEdges
+    val eNum2 = g2.edges.distinct.count
     //holds the number of edges from larger graph
     var max: Long = 0
     //get the number of edges of larger graph
@@ -94,9 +94,9 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    */
   private def calculateContainmentSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Double = {
     //number of edges of graph1
-    val eNum1 = g1.numEdges
+    val eNum1 = g1.edges.distinct.count
     //number of edges of graph2
-    val eNum2 = g2.numEdges
+    val eNum2 = g2.edges.distinct.count
     //number of edges from minimum graph
     var min: Long = 0
     val srcDst1 = g1.edges.map(e => (e.srcId, e.dstId))

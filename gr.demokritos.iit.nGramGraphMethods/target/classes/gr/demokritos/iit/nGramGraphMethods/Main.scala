@@ -9,28 +9,29 @@ import org.apache.spark.SparkConf
 object Main extends App {
   override def main(args: Array[String]) {
     //tests
-    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
+    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local[2]")
     val sc = new SparkContext(conf)
 
     val e = new StringEntity
-    e.dataString = "Hello World!"
+    e.readDataStringFromFile("text1.txt")
+    //e.dataString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Hello World! Yes, of course. AAAAA"
     val nggc = new NGramGraphCreator(3, 3, sc)
     val ngg = nggc.getGraph(e)
 
     val en = new StringEntity
-    en.dataString = "Hello Planet."
+    en.readDataStringFromFile("text2.txt")
+    //en.dataString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Hello Planet. No, of course not. AAAAA"
     val nggc2 = new NGramGraphCreator(3, 3, sc)
     val ngg2 = nggc2.getGraph(en)
 
 
-
     //Use of Merger
-    println("====Merge Graphs====")
-    val m = new GraphMerger(0.5)
-    val g1 = m.getResult(ngg, ngg2)
-    g1.edges.collect.foreach(println)
-    println(g1.numEdges)
-    g1.vertices.collect.foreach(println)
+    //println("====Merge Graphs====")
+    //val m = new GraphMerger(0.5)
+    //val g1 = m.getResult(ngg, ngg2)
+    //g1.edges.collect.foreach(println)
+    //println(g1.numEdges)
+    //g1.vertices.collect.foreach(println)
 
     //Use of Intersector
     //println("====Intersect Graphs====")
@@ -60,6 +61,7 @@ object Main extends App {
     val gsc = new GraphSimilarityCalculator
     val gs = gsc.getSimilarity(ngg, ngg2)
     println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment"))
+
   }
 
 }

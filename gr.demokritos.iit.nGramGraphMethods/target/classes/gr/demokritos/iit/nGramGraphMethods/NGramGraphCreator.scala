@@ -62,7 +62,7 @@ class NGramGraphCreator(val ngram:Int, val dwin:Int, val sc:SparkContext) extend
     //create graph
     val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD)
     //group duplicate edges
-    val finalGraph = graph.groupEdges((a, b) => a+b)
+    val finalGraph = graph.groupEdges((a, b) => a*b)
     //return graph
     finalGraph
   }
