@@ -9,7 +9,7 @@ import org.apache.spark.SparkConf
 object Main extends App {
   override def main(args: Array[String]) {
     //tests
-    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local[2]")
+    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
 
     val e = new StringEntity
