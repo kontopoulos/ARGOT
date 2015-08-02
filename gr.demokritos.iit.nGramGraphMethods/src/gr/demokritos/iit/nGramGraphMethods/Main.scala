@@ -14,13 +14,13 @@ object Main extends App {
 
     val e = new StringEntity
     e.readDataStringFromFile("text1.txt")
-    //e.dataString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Hello World! Yes, of course. AAAAA"
+    //e.dataString = "Hello World!"
     val nggc = new NGramGraphCreator(3, 3, sc)
     val ngg = nggc.getGraph(e)
 
     val en = new StringEntity
     en.readDataStringFromFile("text2.txt")
-    //en.dataString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Hello Planet. No, of course not. AAAAA"
+    //en.dataString = "Hello Planet."
     val nggc2 = new NGramGraphCreator(3, 3, sc)
     val ngg2 = nggc2.getGraph(en)
 

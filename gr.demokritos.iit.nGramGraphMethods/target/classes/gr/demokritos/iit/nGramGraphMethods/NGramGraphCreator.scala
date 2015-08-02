@@ -37,34 +37,43 @@ class NGramGraphCreator(val ngram:Int, val dwin:Int, val sc:SparkContext) extend
     }
     //array that holds the edges
     var edges = Array.empty[Edge[Double]]
-    //list that holds the srcId and dstId of edges
-    var ids: List[String] = List()
     //create edges
-    for(j <- 0 to e.getEntityComponents.size - 1) {
+    for(j <- 0 to en.getEntityComponents.size - 1) {
       for(i <- 1 to dwin) {
-        if((j+i) < e.getEntityComponents.size) {
-          //because a common edge is the one which connects same vertices
-          //if an inverse srcId and dstId is found, inverse it so we can consider it a common edge
-          if(!ids.contains(en.getEntityComponents(j+i).label + "," + en.getEntityComponents(j).label)) {
-            edges = edges ++ Array(Edge(en.getEntityComponents(j).label.toLong, en.getEntityComponents(j+i).label.toLong, 1.0))
-            ids :::= List(en.getEntityComponents(j).label + "," + en.getEntityComponents(j+i).label)
-          }
-          else {
-            edges = edges ++ Array(Edge(en.getEntityComponents(j+i).label.toLong, en.getEntityComponents(j).label.toLong, 1.0))
-          }
+        if((j+i) < en.getEntityComponents.size) {
+          //add edge
+          edges = edges ++ Array(Edge(en.getEntityComponents(j).label.toLong, en.getEntityComponents(j+i).label.toLong, 1.0))
+          //add inverse edge
+          edges = edges ++ Array(Edge(en.getEntityComponents(j+i).label.toLong, en.getEntityComponents(j).label.toLong, 1.0))
         }
       }
     }
+    //assign weights where occurrence is the number of times a given pair of n-grams
+    //happen to be neighbors in a string within some distance dwin of each other
+    var groupedEdges = Array.empty[Edge[Double]]
+    for(i <- 0 to edges.length - 1) {
+      var occurrence = 1.0
+      //we increase by 2 because two consecutive edges are the inverted between them
+      //we loop until dwin*2-1 for the same reason
+      for(j <- 1 to dwin*2-1 by 2) {
+        //the +1 occurs because the next edge from current is the inverse edge and we want the next one
+        if((j+i+1) < edges.length) {
+          if(edges(j+i+1).srcId == edges(i).srcId && edges(j+i+1).dstId == edges(i).dstId) {
+            occurrence += 1.0
+          }
+        }
+      }
+      //add edge to array
+      groupedEdges = groupedEdges ++ Array(Edge(edges(i).srcId, edges(i).dstId, occurrence))
+    }
     //create vertex RDD from vertices array
     val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices)
-    //create edge RDD from edges array
-    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges)
+    //create edge RDD from groupedEdges array
+    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(groupedEdges)
     //create graph
     val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD)
-    //group duplicate edges
-    val finalGraph = graph.groupEdges((a, b) => a*b)
     //return graph
-    finalGraph
+    graph
   }
 
 }
