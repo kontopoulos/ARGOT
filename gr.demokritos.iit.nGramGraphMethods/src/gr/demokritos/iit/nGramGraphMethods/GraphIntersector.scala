@@ -1,12 +1,15 @@
 package gr.demokritos.iit.nGramGraphMethods
 
-import org.apache.spark.graphx.Graph
+import org.apache.spark.SparkContext
+import org.apache.spark.graphx.{Edge, Graph}
+import org.apache.spark.rdd.RDD
 
 /**
  * @author Kontopoulos Ioannis
  * @param l the learning factor
+ * @param sc SparkContext
  */
-class GraphIntersector(val l: Double) extends BinaryGraphOperator {
+class GraphIntersector(val l: Double, val sc: SparkContext) extends BinaryGraphOperator {
 
   /**
    * Creates a graph which contains the common edges with averaged edge weights
@@ -23,13 +26,13 @@ class GraphIntersector(val l: Double) extends BinaryGraphOperator {
     var m2: Map[String, Tuple3[Long, Long, Double]] = Map()
     //collect edges from the second graph
     g2.edges.collect.foreach { e => m2 += (e.srcId + "," + e.dstId -> new Tuple3(e.srcId, e.dstId, e.attr)) }
-    //map holds all of the edges, with real values only from common edges
+    //map holds the common edges
     var map: Map[String, Tuple3[Long, Long, Double]] = Map()
-    //search for the common edges, if it does not exist add the key from the other in order not to have exception in the subgraph method
-    m.keys.foreach { i => if (m2.contains(i)) map += (i -> m(i)) else map += (i -> new Tuple3(0L, 0L, 0.0)) }
-    //search for the common edges, if it does not exist add the key from the other in order not to have exception in the subgraph method
-    m2.keys.foreach { i => if (m.contains(i)) map += (i -> m2(i)) else map += (i -> new Tuple3(0L, 0L, 0.0)) }
-    //mMap holds all of the edges, with proper values of common edges
+    //search for the common edges
+    m.keys.foreach { i => if (m2.contains(i)) map += (i -> m(i)) }
+    //search for the common edges
+    m2.keys.foreach { i => if (m.contains(i)) map += (i -> m2(i)) }
+    //mMap holds the common edges after the averaged weights
     var mMap: Map[String, Tuple3[Long, Long, Double]] = Map()
     if (m.size > m2.size) {
     mMap ++= calculateNewWeights(map, m, m2)
@@ -37,10 +40,42 @@ class GraphIntersector(val l: Double) extends BinaryGraphOperator {
     else {
       mMap ++= calculateNewWeights(map, m2, m)
     }
-    val newG = g1.mask(g2)
-    //assign the proper edge weights
-    val n = newG.mapEdges(e => e.attr * 0 + mMap(e.srcId + "," + e.dstId)._3)
-    n
+    //v1 holds the vertices of first graph
+    var v1 = Array.empty[Tuple2[Long, String]]
+    //v2 holds the vertices of second graph
+    var v2 = Array.empty[Tuple2[Long, String]]
+    //collect vertices of first graph
+    g1.vertices.collect.foreach{
+      v =>
+        v1 = v1 ++ Array(Tuple2(v._1, v._2))
+    }
+    //collect vertices of second graph
+    g2.vertices.collect.foreach{
+      v =>
+        v2 = v2 ++ Array(Tuple2(v._1, v._2))
+    }
+    //vertices holds the common vertices
+    var vertices = Array.empty[Tuple2[Long, String]]
+    //collect the common vertices
+    g1.vertices.collect.foreach{
+      v =>
+        if(v1.contains(v._1, v._2) && v2.contains(v._1, v._2)) {
+          vertices = vertices ++ Array(Tuple2(v._1, v._2))
+        }
+    }
+    //array that holds the common edges
+    var edges = Array.empty[Edge[Double]]
+    mMap.keys.foreach{
+      k =>
+        edges = edges ++ Array(Edge(mMap(k)._1, mMap(k)._2, mMap(k)._3))
+    }
+    //create vertex RDD from vertices array
+    val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices)
+    //create edge RDD from edges array
+    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges)
+    //create graph
+    val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD)
+    graph
   }
 
   /**

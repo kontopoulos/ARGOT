@@ -1,12 +1,15 @@
 package gr.demokritos.iit.nGramGraphMethods
 
-import org.apache.spark.graphx.Graph
+import org.apache.spark.SparkContext
+import org.apache.spark.graphx.{Edge, Graph}
+import org.apache.spark.rdd.RDD
 
 /**
  * @author Kontopoulos Ioannis
  * @param l the learning factor
+ * @param sc SparkContext
  */
-class GraphMerger(val l: Double) extends BinaryGraphOperator {
+class GraphMerger(val l: Double, val sc: SparkContext) extends BinaryGraphOperator {
 
   /**
    * Merges two graphs
@@ -25,10 +28,11 @@ class GraphMerger(val l: Double) extends BinaryGraphOperator {
     g2.edges.collect.foreach { e => m2 += (e.srcId + "," + e.dstId -> new Tuple3(e.srcId, e.dstId, e.attr)) }
     //map holds all of the edges, with real values only from common edges
     var map: Map[String, Tuple3[Long, Long, Double]] = Map()
-    //search for the common edges, if it does not exist add the key from the other in order not to have exception in the subgraph method
+    //search for the common edges
     m.keys.foreach { i => if (m2.contains(i)) map += (i -> m(i)) else map += (i -> new Tuple3(0L, 0L, 0.0)) }
-    //search for the common edges, if it does not exist add the key from the other in order not to have exception in the subgraph method
+    //search for the common edges
     m2.keys.foreach { i => if (m.contains(i)) map += (i -> m2(i)) else map += (i -> new Tuple3(0L, 0L, 0.0)) }
+    //mMap holds all of the edges with the averaged weights
     var mMap: Map[String, Tuple3[Long, Long, Double]] = Map()
     if (m.size > m2.size) {
       mMap ++= calculateNewWeights(map, m, m2)
@@ -36,17 +40,45 @@ class GraphMerger(val l: Double) extends BinaryGraphOperator {
     else {
       mMap ++= calculateNewWeights(map, m2, m)
     }
-    //merge edges
-    val edges = g1.edges.union(g2.edges)
-    //merge vertices
-    val vertices = g1.vertices.union(g2.vertices)
-    //create merged graph
-    val newG: Graph[String, Double] = Graph(vertices, edges)
-    //merge multiple edges between two vertices into a single edge.
-    val mergedGraph = newG.groupEdges((a, b) => a+b)
+    //vertices holds all of the vertices
+    var vertices = Array.empty[Tuple2[Long, String]]
+    //combine the vertices from the two graphs
+    g1.vertices.collect.foreach{
+      v =>
+        if(!vertices.contains((v._1, v._2))) {
+          vertices = vertices ++ Array(Tuple2(v._1, v._2))
+        }
+    }
+    g2.vertices.collect.foreach{
+      v =>
+        if(!vertices.contains((v._1, v._2))) {
+          vertices = vertices ++ Array(Tuple2(v._1, v._2))
+        }
+    }
+    //edges holds all of the edges
+    var edges = Array.empty[Edge[Double]]
+    //combine the edges from the two graphs
+    g1.edges.collect.foreach{
+      e =>
+        if(!edges.contains(Edge(e.srcId, e.dstId, e.attr))) {
+          edges = edges ++ Array(Edge(e.srcId, e.dstId, e.attr))
+        }
+    }
+    g2.edges.collect.foreach{
+      e =>
+        if(!edges.contains(Edge(e.srcId, e.dstId, e.attr))) {
+          edges = edges ++ Array(Edge(e.srcId, e.dstId, e.attr))
+        }
+    }
+    //create vertex RDD from vertices array
+    val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices)
+    //create edge RDD from edges array
+    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges)
+    //create graph
+    val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD)
     //assign proper edge weights
-    val n = mergedGraph.mapEdges(e => e.attr * 0 + mMap(e.srcId + "," + e.dstId)._3)
-    n
+    val mergedGraph = graph.mapEdges(e => e.attr * 0 + mMap(e.srcId + "," + e.dstId)._3)
+    mergedGraph
   }
 
   /**
