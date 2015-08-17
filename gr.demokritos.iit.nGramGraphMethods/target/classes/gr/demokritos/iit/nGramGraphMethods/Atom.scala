@@ -5,4 +5,7 @@ package gr.demokritos.iit.nGramGraphMethods
  */
 trait Atom {
 
+  val label: String
+  val dataStream: AnyRef
+
 }

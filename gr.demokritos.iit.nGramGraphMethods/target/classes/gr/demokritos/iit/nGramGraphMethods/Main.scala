@@ -9,7 +9,7 @@ import org.apache.spark.SparkConf
 object Main extends App {
   override def main(args: Array[String]) {
     //tests
-    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local[2]")
+    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
     val sc = new SparkContext(conf)
 
     val e = new StringEntity
@@ -25,9 +25,9 @@ object Main extends App {
 
 
     //Use of Merger
-    println("====Merge Graphs====")
-    val m = new GraphMerger(0.5, sc)
-    val g1 = m.getResult(ngg, ngg2)
+    //println("====Merge Graphs====")
+    //val m = new GraphMerger(0.5, sc)
+    //val g1 = m.getResult(ngg, ngg2)
     //g1.edges.collect.foreach(println)
     //println(g1.edges.distinct.count)
     //g1.vertices.collect.foreach(println)
@@ -59,7 +59,7 @@ object Main extends App {
     //Use of similarities
     val gsc = new GraphSimilarityCalculator
     val gs = gsc.getSimilarity(ngg, ngg2)
-    println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment"))
+    println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment") + " Normalized " + gs.getSimilarityComponents("normalized"))
 
   }
 

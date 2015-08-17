@@ -14,7 +14,7 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    * @return Similarity
    */
   override def getSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Similarity = {
-    val gs = new GraphSimilarity(calculateSizeSimilarity(g1, g2), calculateValueSimilarity(g1, g2), calculateContainmentSimilarity(g1, g2))
+    val gs = new GraphSimilarity(calculateSizeSimilarity(g1, g2), calculateValueSimilarity(g1, g2), calculateContainmentSimilarity(g1, g2), calculateValueSimilarity(g1, g2)/calculateSizeSimilarity(g1, g2))
     gs
   }
 

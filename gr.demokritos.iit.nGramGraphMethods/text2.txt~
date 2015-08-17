@@ -1,0 +1,4 @@
+Coded language used by programmers to write instructions that a computer can understand to do what the programmer (or the computer user) wants. The most basic (called low-level) computer language is the machine language that uses binary ('1' and '0') code which a computer can run (execute) very fast without using any translator or interpreter program, but is tedious and complex. The high-level languages (such as Basic, C, Java) are much simpler (more 'English-like') to use but need to use another program (a compiler or an interpreter) to convert the high-level code into the machine code, and are therefore slower. There are dozens of programming languages and new ones are being continuously developed. Also called computer language.
+
+Read more: http://www.businessdictionary.com/definition/programming-language.html#ixzz3hUbAvmRA
+

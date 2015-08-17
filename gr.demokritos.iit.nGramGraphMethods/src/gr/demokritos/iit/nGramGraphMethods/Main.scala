@@ -59,7 +59,7 @@ object Main extends App {
     //Use of similarities
     val gsc = new GraphSimilarityCalculator
     val gs = gsc.getSimilarity(ngg, ngg2)
-    println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment"))
+    println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment") + " Normalized " + gs.getSimilarityComponents("normalized"))
 
   }
 
