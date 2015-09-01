@@ -7,7 +7,7 @@ import org.apache.spark.{SparkContext, SparkConf}
 object Starter {
   def main(args: Array[String]) {
     //tests
-    val conf = new SparkConf().setAppName("Graph Methods").setMaster("local")
+    val conf = new SparkConf().setAppName("Graph Methods")
     val sc = new SparkContext(conf)
 
 
@@ -27,7 +27,7 @@ object Starter {
     var merged: Graph[String, Double] = null
     println("Merging graphs...")
     merged = m.getResult(graphs(0), graphs(1))
-    for (i <- 2 to 10) {
+    for (i <- 2 to graphs.size-1) {
       merged = m.getResult(merged, graphs(i))
     }
     println("Merging complete.")
@@ -81,7 +81,7 @@ object Starter {
     //g4.vertices.collect.foreach(println)
 
     //Use of similarities
-    val gsc = new GraphSimilarityCalculator(sc)
+    val gsc = new GraphSimilarityCalculator
     val gs = gsc.getSimilarity(tg, merged)
     println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment") + " Normalized " + gs.getSimilarityComponents("normalized"))
 

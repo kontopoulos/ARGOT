@@ -1,10 +1,9 @@
-import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
 
 /**
  * @author Kontopoulos Ioannis
  */
-class GraphSimilarityCalculator(val sc: SparkContext) extends SimilarityCalculator {
+class GraphSimilarityCalculator extends SimilarityCalculator {
 
   /**
    * Gets the similarity between two graphs
