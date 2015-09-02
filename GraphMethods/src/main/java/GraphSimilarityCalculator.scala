@@ -24,7 +24,7 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    */
   private def calculateSizeSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Double = {
     //return smallest graph size/largest graph size
-    Math.min(g1.edges.distinct.count, g2.edges.distinct.count).toDouble/Math.max(g1.edges.distinct.count, g2.edges.distinct.count)
+    Math.min(g1.numEdges, g2.numEdges).toDouble/Math.max(g1.numEdges, g2.numEdges)
   }
 
   /**
@@ -40,7 +40,7 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
     //c holds the number of common edges
     val c = srcDst1.intersection(srcDst2).count
     //for each common edge add (minimum edge weight/maximum edge weight)/maximum graph size to a sum
-    val sum = (Math.min(g1.edges.map(_.attr).min, g2.edges.map(_.attr).min)/Math.max(g1.edges.map(_.attr).max, g2.edges.map(_.attr).max))/Math.max(g1.edges.distinct.count, g2.edges.distinct.count)*c
+    val sum = (Math.min(g1.edges.map(_.attr).min, g2.edges.map(_.attr).min)/Math.max(g1.edges.map(_.attr).max, g2.edges.map(_.attr).max))/Math.max(g1.numEdges, g2.numEdges)*c
     sum
   }
 
@@ -57,7 +57,7 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
     //c holds the number of common edges
     val c = srcDst1.intersection(srcDst2).count
     //for each common edge add 1/min to a sum
-    val sum = (1.toDouble/Math.min(g1.edges.distinct.count, g2.edges.distinct.count))*c
+    val sum = (1.toDouble/Math.min(g1.numEdges, g2.numEdges))*c
     sum
   }
 
