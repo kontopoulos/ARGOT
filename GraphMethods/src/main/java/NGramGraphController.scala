@@ -93,4 +93,38 @@ class NGramGraphController(val sc: SparkContext) extends GraphController {
     Some(new PrintWriter("nGramGraph.dot")).foreach{p => p.write(str); p.close}
   }
 
+  /**
+   * Save vertices ans edges of graph to files
+   * @param g graph to save
+   */
+  def saveGraphToTextFile(g: Graph[String, Double]) = {
+    //save edges to text file
+    g.edges.distinct.saveAsTextFile("edgesRDD")
+    //save vertices to text file
+    g.vertices.distinct.saveAsTextFile("verticesRDD")
+  }
+
+  /**
+   * Load graph from edges file and vertices file
+   * @return graph
+   */
+  def loadGraphFromTextFiles(): Graph[String, Double] = {
+    //path for vertices file
+    val vertexFile = "verticesRDD/part-00000"
+    //path for edges file
+    val edgeFile = "edgesRDD/part-00000"
+    //create EdgeRDD from file rows
+    val edges: RDD[Edge[Double]] = sc.textFile(edgeFile).map{ line =>
+      val row = line.split("[,()]")
+      Edge(row(1).toLong, row(2).toLong, row(3).toDouble)
+    }
+    //create VertexRDD from file rows
+    val vertices: RDD[(Long, String)] = sc.textFile(vertexFile).map{ line =>
+      val row = line.split(",()")
+      (row(0).substring(1).toLong, row(1))
+    }
+    val graph: Graph[String, Double] = Graph(vertices, edges)
+    graph
+  }
+
 }
