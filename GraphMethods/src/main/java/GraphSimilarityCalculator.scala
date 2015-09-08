@@ -18,13 +18,15 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
 
   /**
    * Calculates size similarity
-   * @param g1 graph1
-   * @param g2 graph2
    * @return size similarity
    */
   private def calculateSizeSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Double = {
-    //return smallest graph size/largest graph size
-    Math.min(g1.numEdges, g2.numEdges).toDouble/Math.max(g1.numEdges, g2.numEdges)
+    //number of edges of graph1
+    val g1EdgeCount = g1.edges.distinct.count
+    //number of edges of graph2
+    val g2EdgeCount = g2.edges.distinct.count
+    val sSimil = Math.min(g1EdgeCount, g2EdgeCount).toDouble/Math.max(g1EdgeCount, g2EdgeCount)
+    sSimil
   }
 
   /**
@@ -34,14 +36,18 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    * @return value similarity
    */
   private def calculateValueSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Double = {
+    //number of edges of graph1
+    val g1EdgeCount = g1.edges.distinct.count
+    //number of edges of graph2
+    val g2EdgeCount = g2.edges.distinct.count
     //common edges are the ones with common vertices pairs
     val srcDst1 = g1.edges.distinct.map(e => (e.srcId, e.dstId))
     val srcDst2 = g2.edges.distinct.map(e => (e.srcId, e.dstId))
     //c holds the number of common edges
     val c = srcDst1.intersection(srcDst2).count
     //for each common edge add (minimum edge weight/maximum edge weight)/maximum graph size to a sum
-    val sum = (Math.min(g1.edges.map(_.attr).min, g2.edges.map(_.attr).min)/Math.max(g1.edges.map(_.attr).max, g2.edges.map(_.attr).max))/Math.max(g1.numEdges, g2.numEdges)*c
-    sum
+    val vSimil = (Math.min(g1.edges.map(_.attr).min, g2.edges.map(_.attr).min)/Math.max(g1.edges.map(_.attr).max, g2.edges.map(_.attr).max))/Math.max(g1EdgeCount, g2EdgeCount)*c
+    vSimil
   }
 
   /**
@@ -51,14 +57,18 @@ class GraphSimilarityCalculator extends SimilarityCalculator {
    * @return containment similarity
    */
   private def calculateContainmentSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Double = {
+    //number of edges of graph1
+    val g1EdgeCount = g1.edges.distinct.count
+    //number of edges of graph2
+    val g2EdgeCount = g2.edges.distinct.count
     //common edges are the ones with common vertices pairs
     val srcDst1 = g1.edges.distinct.map(e => (e.srcId, e.dstId))
     val srcDst2 = g2.edges.distinct.map(e => (e.srcId, e.dstId))
     //c holds the number of common edges
     val c = srcDst1.intersection(srcDst2).count
     //for each common edge add 1/min to a sum
-    val sum = (1.toDouble/Math.min(g1.numEdges, g2.numEdges))*c
-    sum
+    val cSimil = (1.toDouble/Math.min(g1EdgeCount, g2EdgeCount))*c
+    cSimil
   }
 
 }

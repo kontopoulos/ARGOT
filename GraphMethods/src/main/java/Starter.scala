@@ -8,6 +8,10 @@ object Starter {
   def main(args: Array[String]) {
     //tests
     val conf = new SparkConf().setAppName("Graph Methods")
+      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+      .set("spark.kryoserializer.buffer","24mb")
+      .registerKryoClasses(Array(classOf[GraphMerger], classOf[GraphIntersector], classOf[GraphInverseIntersector], classOf[GraphDeltaOperator]))
+      //.set("spark.executor.memory", "1g")
     val sc = new SparkContext(conf)
 
 
@@ -16,6 +20,7 @@ object Starter {
     val nggc = new NGramGraphController(sc)
     println("Reading training files...")
     new java.io.File("cardiovascular/training/C01/").listFiles.foreach{ f =>
+      print(">")
       val e = new StringEntity
       e.readDataStringFromFile("cardiovascular/training/C01/" + f.getName)
       val c = nggc.getGraph(e, 3, 3)
@@ -24,17 +29,22 @@ object Starter {
     println("Reading complete.")
     //merge all graphs to a class graph
     val m = new GraphMerger(0.5)
-    var merged: Graph[String, Double] = null
-    println("Merging graphs...")
-    merged = m.getResult(graphs(0), graphs(1))
+    println("Preparing graph transformations...")
+    var merged = m.getResult(graphs(0), graphs(1))
     for (i <- 2 to graphs.size-1) {
+      print(">")
+      if (i % 30 == 0) {
+        //every 30 iterations cut the lineage, due to long iteration
+        merged = Graph(merged.vertices.distinct, merged.edges.distinct)
+      }
       merged = m.getResult(merged, graphs(i))
     }
-    println("Merging complete.")
+    println("Preparations complete.")
 
     val test = new StringEntity
     test.readDataStringFromFile("cardiovascular/test/C01/0000011")
     val tg = nggc.getGraph(test, 3, 3)
+
 
     //val e = new StringEntity
     //e.readDataStringFromFile("text1.txt")
