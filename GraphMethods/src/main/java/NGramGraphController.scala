@@ -130,7 +130,7 @@ class NGramGraphController(val sc: SparkContext) extends GraphController {
         .mapPartitionsWithIndex((index: Int, it: Iterator[(Long, String)]) => if(index == idx) it else Iterator(), true )
       //partRdd contains all values from a single partition
       partRdd.collect.foreach{ v =>
-        vw.write(v._1 + "<>" + v._2.replaceAll("\n", " ").replaceAll("[`~!@#$%^&*()+-=,.<>/?;:' ]", "_") + "\n")
+        vw.write(v._1 + "<>" + v._2.replaceAll("\n", " ") + "\n")
       }
     }
     //close file
