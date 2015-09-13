@@ -95,7 +95,14 @@ class NGramGraphController(val sc: SparkContext) extends GraphController {
       .foreach{ e => str += "\t" + vertices(e.srcId.toInt) + " -> " + vertices(e.dstId.toInt) + " [label=\"" + e.srcId + "" + e.dstId + "\" weight=" + e.attr + "];\n" }
     str += "}"
     //write string to file
-    Some(new PrintWriter("nGramGraph.dot")).foreach{p => p.write(str); p.close}
+    try {
+      Some(new PrintWriter("nGramGraph.dot")).foreach{p => p.write(str); p.close}
+    }
+    catch {
+      case ex: Exception => {
+        println("Could not write to file. Reason: " + ex.getMessage)
+      }
+    }
   }
 
   /**
@@ -115,7 +122,14 @@ class NGramGraphController(val sc: SparkContext) extends GraphController {
         .mapPartitionsWithIndex((index: Int, it: Iterator[Edge[Double]]) => if(index == idx) it else Iterator(), true )
       //partRdd contains all values from a single partition
       partRdd.collect.foreach{ e =>
-        ew.write(e.srcId + "<>" + e.dstId + "<>" + e.attr + "\n")
+        try {
+          ew.write(e.srcId + "<>" + e.dstId + "<>" + e.attr + "\n")
+        }
+        catch {
+          case ex: Exception => {
+            println("Could not write to file. Reason: " + ex.getMessage)
+          }
+        }
       }
     }
     //close file
@@ -130,7 +144,14 @@ class NGramGraphController(val sc: SparkContext) extends GraphController {
         .mapPartitionsWithIndex((index: Int, it: Iterator[(Long, String)]) => if(index == idx) it else Iterator(), true )
       //partRdd contains all values from a single partition
       partRdd.collect.foreach{ v =>
-        vw.write(v._1 + "<>" + v._2.replaceAll("\n", " ") + "\n")
+        try {
+          vw.write(v._1 + "<>" + v._2.replaceAll("\n", " ") + "\n")
+        }
+        catch {
+          case ex: Exception => {
+            println("Could not write to file. Reason: " + ex.getMessage)
+          }
+        }
       }
     }
     //close file
