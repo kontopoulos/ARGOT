@@ -1,4 +1,3 @@
-import org.apache.spark.graphx.Graph
 import org.apache.spark.{SparkContext, SparkConf}
 
 /**
@@ -6,57 +5,31 @@ import org.apache.spark.{SparkContext, SparkConf}
  */
 object Starter {
   def main(args: Array[String]) {
-    //tests
     val conf = new SparkConf().setAppName("Graph Methods")
+      .setMaster("local")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.kryoserializer.buffer","24mb")
       .registerKryoClasses(Array(classOf[GraphMerger], classOf[GraphIntersector], classOf[GraphInverseIntersector], classOf[GraphDeltaOperator]))
-      //.set("spark.executor.memory", "1g")
+      .set("spark.executor.memory", "2g")
     val sc = new SparkContext(conf)
 
+    val exp = new nFoldCrossValidation(sc, 10)
+    exp.run
 
-    //read files from directory
-    var graphs: List[Graph[String, Double]] = List()
-    val nggc = new NGramGraphController(sc)
-    println("Reading training files...")
-    new java.io.File("cardiovascular/training/C01/").listFiles.foreach{ f =>
-      print(">")
-      val e = new StringEntity
-      e.readDataStringFromFile("cardiovascular/training/C01/" + f.getName)
-      val c = nggc.getGraph(e, 3, 3)
-      graphs :::= List(c)
-    }
-    println("Reading complete.")
-    //merge all graphs to a class graph
-    val m = new GraphMerger(0.5)
-    println("Preparing graph transformations...")
-    var merged = m.getResult(graphs(0), graphs(1))
-    for (i <- 2 to graphs.size-1) {
-      print(">")
-      if (i % 30 == 0) {
-        //every 30 iterations cut the lineage, due to long iteration
-        merged = Graph(merged.vertices.distinct, merged.edges.distinct)
-      }
-      merged = m.getResult(merged, graphs(i))
-    }
-    println("Preparations complete.")
 
-    val test = new StringEntity
-    test.readDataStringFromFile("cardiovascular/test/C01/0000011")
-    val tg = nggc.getGraph(test, 3, 3)
 
+    //Examples of basic use
 
     //val e = new StringEntity
     //e.readDataStringFromFile("text1.txt")
     //e.dataString = "Hello World!"
-    //val nggc = new NGramGraphController(sc)
+    //val nggc = new NGramGraphCreator(sc)
     //val ngg = nggc.getGraph(e, 3, 3)
 
     //val en = new StringEntity
     //en.readDataStringFromFile("text2.txt")
     //en.dataString = "Hello Planet."
     //val ngg2 = nggc.getGraph(en, 3, 3)
-
 
     //Use of Merger
     //println("====Merge Graphs====")
@@ -91,9 +64,9 @@ object Starter {
     //g4.vertices.collect.foreach(println)
 
     //Use of similarities
-    val gsc = new GraphSimilarityCalculator
-    val gs = gsc.getSimilarity(tg, merged)
-    println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment") + " Normalized " + gs.getSimilarityComponents("normalized"))
-
+    //val gsc = new GraphSimilarityCalculator
+    //val gs = gsc.getSimilarity(ngg, ngg2)
+    //println("Overall " + gs.getOverallSimilarity + " Size " + gs.getSimilarityComponents("size") + " Value " + gs.getSimilarityComponents("value") + " Containment " + gs.getSimilarityComponents("containment") + " Normalized " + gs.getSimilarityComponents("normalized"))
   }
+
 }

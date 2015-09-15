@@ -4,12 +4,10 @@ import org.apache.spark.graphx.Graph
 /**
  * @author Kontopoulos Ioannis
  */
-trait GraphController {
+trait GraphCreator {
 
   val sc: SparkContext
 
   def getGraph(e: Entity, ngram: Int, dwin: Int): Graph[String, Double]
-
-  def saveGraphToDotFormat(g: Graph[String, Double]): Unit
 
 }

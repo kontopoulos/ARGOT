@@ -10,7 +10,7 @@ class StringFixedNGramSegmentor(val ngram: Int) extends Segmentor {
    */
   override def getComponents(e: Entity): List[Atom] = {
     val en = e.asInstanceOf[StringEntity]
-    var atoms: List[StringAtom] = List()
+    var atoms: List[StringAtom] = Nil
     //begin index of string
     var begin = 0
     //create substrings based on ngram size
