@@ -1,5 +1,5 @@
 import org.apache.spark.SparkContext
-import org.apache.spark.graphx.{Edge, Graph}
+import org.apache.spark.graphx.{PartitionStrategy, Edge, Graph}
 import org.apache.spark.rdd.RDD
 
 /**
@@ -23,7 +23,7 @@ class NGramGraphCreator(val sc: SparkContext) extends GraphCreator {
     //set the list of atoms of the entity
     en.setEntityComponents(atoms.map{ case i:StringAtom => i })
     //array that holds the vertices
-    var vertices = Array.empty[Tuple2[Long, String]]
+    var vertices = Array.empty[(Long, String)]
     //create vertices
     en.getEntityComponents.foreach{
       i =>
@@ -34,7 +34,7 @@ class NGramGraphCreator(val sc: SparkContext) extends GraphCreator {
     }
     //array that holds the edges
     var edges = Array.empty[Edge[Double]]
-    //create edges
+    //create edges based on symmetric distribution
     for(j <- 0 to e.getEntityComponents.size - 1) {
       for(i <- 1 to dwin) {
         if((j+i) < e.getEntityComponents.size) {
@@ -45,31 +45,12 @@ class NGramGraphCreator(val sc: SparkContext) extends GraphCreator {
         }
       }
     }
-    var m:Map[String, Edge[Double]] = Map()
-    //erase duplicates and increase occurrence
-    edges.foreach{
-      e =>
-        if(!m.contains(e.srcId + "," + e.dstId)) {
-          //if not found just add it
-          m += (e.srcId + "," + e.dstId -> Edge(e.srcId, e.dstId, e.attr))
-        }
-        else {
-          //if it is found increase the occurrence by 1
-          m += (e.srcId + "," + e.dstId -> Edge(e.srcId, e.dstId, e.attr*1.0 + 1.0))
-        }
-    }
-    var buffer = Array.empty[Edge[Double]]
-    //convert the map to array
-    m.foreach{
-      e =>
-        buffer = buffer ++ Array(Edge(e._2.srcId, e._2.dstId, e._2.attr))
-    }
     //create vertex RDD from vertices array
     val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices)
     //create edge RDD from edges array
-    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(buffer)
+    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges)
     //create graph
-    val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD)
+    val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD).partitionBy(PartitionStrategy.EdgePartition2D).groupEdges( (a, b) => a + b )
     //return graph
     graph
   }
