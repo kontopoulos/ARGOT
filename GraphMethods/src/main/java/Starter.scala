@@ -23,13 +23,13 @@ object Starter {
     //val e = new StringEntity
     //e.readDataStringFromFile("text1.txt")
     //e.dataString = "Hello World!"
-    //val nggc = new NGramGraphCreator(sc)
-    //val ngg = nggc.getGraph(e, 3, 3)
+    //val nggc = new NGramGraphCreator(sc, 3, 3)
+    //val ngg = nggc.getGraph(e)
 
     //val en = new StringEntity
     //en.readDataStringFromFile("text2.txt")
     //en.dataString = "Hello Planet."
-    //val ngg2 = nggc.getGraph(en, 3, 3)
+    //val ngg2 = nggc.getGraph(en)
 
     //Use of Merger
     //println("====Merge Graphs====")

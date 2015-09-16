@@ -12,13 +12,12 @@ class NGramGraphSimilarityClassifier(val sc: SparkContext) extends Classifier {
    * @return class graph
    */
   override def train(ens: List[Entity]): Graph[String, Double] = {
-    println("Training...")
     var graphs: List[Graph[String, Double]] = Nil
     val es = ens.asInstanceOf[List[StringEntity]]
-    val nggc = new NGramGraphCreator(sc)
+    val nggc = new NGramGraphCreator(sc, 3, 3)
     //create graphs from entities
     es.foreach{ e =>
-      val g = nggc.getGraph(e, 3, 3)
+      val g = nggc.getGraph(e)
       graphs :::= List(g)
     }
     val m = new GraphMerger(0.5)
@@ -31,7 +30,6 @@ class NGramGraphSimilarityClassifier(val sc: SparkContext) extends Classifier {
       }
       merged = m.getResult(merged, graphs(i))
     }
-    println("Training complete.")
     merged
   }
 
@@ -43,24 +41,18 @@ class NGramGraphSimilarityClassifier(val sc: SparkContext) extends Classifier {
    */
   override def test(e: Entity, graphs: List[Graph[String, Double]]): List[String] = {
     val en = e.asInstanceOf[StringEntity]
-    val nggc = new NGramGraphCreator(sc)
-    val testGraph = nggc.getGraph(en, 3, 3)
-    //first class graph
-    val g01 = graphs(0)
-    //second class graph
-    val g02 = graphs(1)
-    //third class graph
-    val g03 = graphs(2)
+    val nggc = new NGramGraphCreator(sc, 3, 3)
+    val testGraph = nggc.getGraph(en)
     val gsc = new GraphSimilarityCalculator
     //taking into account the sum of value, normalized value and containment similarities in every case
     //test with first class
-    val gs1 = gsc.getSimilarity(testGraph, g01)
+    val gs1 = gsc.getSimilarity(testGraph, graphs(0))
     val simil01 = gs1.getSimilarityComponents("value") + gs1.getSimilarityComponents("normalized") + gs1.getSimilarityComponents("containment")
     //test with second class
-    val gs2 = gsc.getSimilarity(testGraph, g02)
+    val gs2 = gsc.getSimilarity(testGraph, graphs(1))
     val simil02 = gs2.getSimilarityComponents("value") + gs2.getSimilarityComponents("normalized") + gs2.getSimilarityComponents("containment")
     //test with third class
-    val gs3 = gsc.getSimilarity(testGraph, g03)
+    val gs3 = gsc.getSimilarity(testGraph, graphs(2))
     val simil03 = gs3.getSimilarityComponents("value") + gs3.getSimilarityComponents("normalized") + gs3.getSimilarityComponents("containment")
     //evaluate and return predicted label
     if (simil01 > simil02) {

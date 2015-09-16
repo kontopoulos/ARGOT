@@ -8,6 +8,6 @@ trait GraphCreator {
 
   val sc: SparkContext
 
-  def getGraph(e: Entity, ngram: Int, dwin: Int): Graph[String, Double]
+  def getGraph(e: Entity): Graph[String, Double]
 
 }

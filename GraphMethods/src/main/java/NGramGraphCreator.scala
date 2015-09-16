@@ -5,16 +5,14 @@ import org.apache.spark.rdd.RDD
 /**
  * @author Kontopoulos Ioannis
  */
-class NGramGraphCreator(val sc: SparkContext) extends GraphCreator {
+class NGramGraphCreator(val sc: SparkContext, val ngram: Int, val dwin: Int) extends GraphCreator {
 
   /**
    * Creates a graph based on ngram, dwin and entity
    * @param e entity from which a graph will be created
-   * @param ngram size of ngrams
-   * @param dwin size of adjacency window
    * @return graph from entity
    */
-  override def getGraph(e: Entity, ngram: Int, dwin: Int): Graph[String, Double] = {
+  override def getGraph(e: Entity): Graph[String, Double] = {
     val en = e.asInstanceOf[StringEntity]
     //segment the entity
     val seg = new StringFixedNGramSegmentor(ngram)
@@ -49,7 +47,7 @@ class NGramGraphCreator(val sc: SparkContext) extends GraphCreator {
     val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices)
     //create edge RDD from edges array
     val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges)
-    //create graph
+    //create graph from vertices and edges arrays, erase duplicate edges and increase occurence
     val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD).partitionBy(PartitionStrategy.EdgePartition2D).groupEdges( (a, b) => a + b )
     //return graph
     graph
