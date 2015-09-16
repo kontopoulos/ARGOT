@@ -52,16 +52,16 @@ class NGramGraphSimilarityClassifier(val sc: SparkContext) extends Classifier {
     //third class graph
     val g03 = graphs(2)
     val gsc = new GraphSimilarityCalculator
-    //taking into account the sum of value and normalized value similarities in every case
+    //taking into account the sum of value, normalized value and containment similarities in every case
     //test with first class
     val gs1 = gsc.getSimilarity(testGraph, g01)
-    val simil01 = gs1.getSimilarityComponents("value") + gs1.getSimilarityComponents("normalized")
+    val simil01 = gs1.getSimilarityComponents("value") + gs1.getSimilarityComponents("normalized") + gs1.getSimilarityComponents("containment")
     //test with second class
     val gs2 = gsc.getSimilarity(testGraph, g02)
-    val simil02 = gs2.getSimilarityComponents("value") + gs2.getSimilarityComponents("normalized")
+    val simil02 = gs2.getSimilarityComponents("value") + gs2.getSimilarityComponents("normalized") + gs2.getSimilarityComponents("containment")
     //test with third class
     val gs3 = gsc.getSimilarity(testGraph, g03)
-    val simil03 = gs3.getSimilarityComponents("value") + gs3.getSimilarityComponents("normalized")
+    val simil03 = gs3.getSimilarityComponents("value") + gs3.getSimilarityComponents("normalized") + gs3.getSimilarityComponents("containment")
     //evaluate and return predicted label
     if (simil01 > simil02) {
       if (simil01 > simil03) {

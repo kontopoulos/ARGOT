@@ -165,10 +165,10 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
       precision3 = tp03.toDouble/(tp03 + fp03)
     }
     val precision = (precision1 + precision2 + precision3)/3
-    println("tp01 = " + tp01 + " fp01 = " + fp01 + " tp02 = " + tp02 + " fp02 = " + fp02 + " tp03 = " + tp03 + " fp03 = " + fp03)
     println("Precision1 = " + precision1)
     println("Precision2 = " + precision2)
     println("Precision3 = " + precision3)
+    println("Current fold = " + (currentFold + 1))
     println("===================================")
     println("Macro-average Precision = " + precision)
     println("===================================")
