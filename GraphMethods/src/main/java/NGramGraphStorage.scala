@@ -1,4 +1,4 @@
-import java.io.{PrintWriter, FileWriter}
+import java.io.FileWriter
 
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.{Edge, Graph}
@@ -11,14 +11,12 @@ class NGramGraphStorage(val sc: SparkContext) extends GraphStorage {
 
   /**
    * Save vertices ans edges of graph to files
-   * NOTE: if graph with certain label has already been saved the files will be appended
-   * therefore the saved edges and vertices will not correspond to the original graph
    * @param g graph to save
    * @param label label of saved graph
    */
   override def saveGraph(g: Graph[String, Double], label: String) = {
     //collect edges per partition, so there is no memory overflow
-    val ew = new FileWriter(label + "Edges.txt", true)
+    val ew = new FileWriter(label + "Edges.txt")
     val edgeParts = g.edges.distinct.partitions
     for (p <- edgeParts) {
       val idx = p.index
@@ -40,7 +38,7 @@ class NGramGraphStorage(val sc: SparkContext) extends GraphStorage {
     //close file
     ew.close
     //collect vertices per partition, so there is no memory overflow
-    val vw = new FileWriter(label + "Vertices.txt", true)
+    val vw = new FileWriter(label + "Vertices.txt")
     val vertexParts = g.vertices.distinct.partitions
     for (p <- vertexParts) {
       val idx = p.index
@@ -90,31 +88,31 @@ class NGramGraphStorage(val sc: SparkContext) extends GraphStorage {
 
   /**
    * Save graph to dot format file
-   * NOTE: use this method only for small graphs and testing purposes,
-   * because it fetches all the data to the driver program,
-   * leading to memory overflow if the graph is too large
    * @param g graph to save
    */
   def saveGraphToDotFormat(g: Graph[String, Double]) = {
-    var str = "digraph nGramGraph {\n"
-    //map that holds the vertices
-    var vertices: Map[Int, String] = Map()
-    //collect vertices from graph and replace punctuations
-    g.vertices.collect
-      .foreach{ v => vertices += ( v._1.toInt -> v._2.replaceAll("[`~!@#$%^&*()+-=,.<>/?;:' ]", "_")) }
-    //construct the string
-    g.edges.distinct.collect
-      .foreach{ e => str += "\t" + vertices(e.srcId.toInt) + " -> " + vertices(e.dstId.toInt) + " [label=\"" + e.srcId + "" + e.dstId + "\" weight=" + e.attr + "];\n" }
-    str += "}"
-    //write string to file
+    val w = new FileWriter("nGramGraph.dot")
     try {
-      Some(new PrintWriter("nGramGraph.dot")).foreach{p => p.write(str); p.close}
+      w.write("digraph nGramGraph {\n")
+      val edgeParts = g.edges.distinct.partitions
+      for (p <- edgeParts) {
+        val idx = p.index
+        //The second argument is true to avoid rdd reshuffling
+        val partRdd = g.edges.distinct
+          .mapPartitionsWithIndex((index: Int, it: Iterator[Edge[Double]]) => if(index == idx) it else Iterator(), true )
+        //partRdd contains all values from a single partition
+        partRdd.collect.foreach{ e =>
+          w.write("\t" + g.vertices.filter{ v => v._1 == e.srcId}.first._2 + " -> " + g.vertices.filter{ v => v._1 == e.dstId}.first._2 + " [label=\"" + e.srcId + "" + e.dstId + "\" weight=" + e.attr + "];\n")
+        }
+      }
+      w.write("}")
     }
     catch {
       case ex: Exception => {
         println("Could not write to file. Reason: " + ex.getMessage)
       }
     }
+    w.close
   }
 
 }
