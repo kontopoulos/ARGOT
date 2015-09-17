@@ -51,47 +51,14 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
   def foldValidation(currentFold: Int, ens1 : List[StringEntity], ens2 : List[StringEntity], ens3 : List[StringEntity]): Double = {
     println("Separating training and testing datasets...")
     //get training and testing datasets from first category
-    val entities1 = ens1.iterator.sliding(ens1.length/numFold, ens1.length/numFold)
-    var training1: List[StringEntity] = Nil
-    var testing1: List[StringEntity] = Nil
-    var i = 0
-    entities1.foreach { l =>
-      if (i == currentFold) {
-        testing1 :::= l.toList
-      }
-      else {
-        training1 :::= l.toList
-      }
-      i += 1
-    }
+    val testing1 = ens1.slice(currentFold, currentFold+ens1.size*numFold/100)
+    val training1 = ens1.slice(0, currentFold) ++ ens1.slice(currentFold+ens1.size*numFold/100, ens1.size)
     //get training and testing datasets from second category
-    val entities2 = ens2.iterator.sliding(ens2.length/numFold, ens2.length/numFold)
-    var training2: List[StringEntity] = Nil
-    var testing2: List[StringEntity] = Nil
-    var j = 0
-    entities2.foreach { l =>
-      if (j == currentFold) {
-        testing2 :::= l.toList
-      }
-      else {
-        training2 :::= l.toList
-      }
-      j += 1
-    }
+    val testing2 = ens2.slice(currentFold, currentFold+ens2.size*numFold/100)
+    val training2 = ens2.slice(0, currentFold) ++ ens2.slice(currentFold+ens2.size*numFold/100, ens2.size)
     //get training and testing datasets from third category
-    val entities3 = ens3.iterator.sliding(ens3.length/numFold, ens3.length/numFold)
-    var training3: List[StringEntity] = Nil
-    var testing3: List[StringEntity] = Nil
-    var x = 0
-    entities3.foreach { l =>
-      if (x == currentFold) {
-        testing3 :::= l.toList
-      }
-      else {
-        training3 :::= l.toList
-      }
-      x += 1
-    }
+    val testing3 = ens3.slice(currentFold, currentFold+ens3.size*numFold/100)
+    val training3 = ens3.slice(0, currentFold) ++ ens3.slice(currentFold+ens3.size*numFold/100, ens3.size)
     println("Separation complete.")
     println("Training...")
     //start training upon datasets
@@ -165,10 +132,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
       precision3 = tp03.toDouble/(tp03 + fp03)
     }
     val precision = (precision1 + precision2 + precision3)/3
-    println("Precision1 = " + precision1)
-    println("Precision2 = " + precision2)
-    println("Precision3 = " + precision3)
-    println("Current fold = " + (currentFold + 1))
+    println("Fold Completed = " + (currentFold + 1))
     println("===================================")
     println("Macro-average Precision = " + precision)
     println("===================================")
