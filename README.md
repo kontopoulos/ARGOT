@@ -1,4 +1,4 @@
-#Application of N-gram Graph Methods over Distributed Platforms
+#Application of N-gram Graph Methods on Distributed Platforms
 
 - Maven Project  
 - IntelliJ Project  
