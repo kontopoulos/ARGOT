@@ -6,12 +6,20 @@ class StringEntity extends Entity {
   //actual string of the entity
   var dataString = ""
   //list of components of StringEntity
-  private var components: List[StringAtom] = List()
+  private var components: List[StringAtom] = Nil
 
   /**
    * @return components of String Entity
    */
   override def getEntityComponents: List[StringAtom] = components
+
+  /**
+   * Returns the actual data of the entity
+   * @return dataString
+   */
+  override def getPayload: String = {
+    this.dataString
+  }
 
   /**
    * Sets the list of components of the Entity
@@ -35,11 +43,14 @@ class StringEntity extends Entity {
   }
 
   /**
-   * Returns the actual data of the entity
-   * @return dataString
+   * Finds the string atom by the label and retrieves
+   * the frequency of string atom only after a graph
+   * has been created from the entity
+   * @param label label of string atom
+   * @return frequency of occurrence in the document
    */
-  override def getPayload: String = {
-    this.dataString
+  def getFrequencyOfStringAtomByLabel(label: String): Int = {
+    components.filter( a => a.label == label)(0).frequency
   }
 
 }

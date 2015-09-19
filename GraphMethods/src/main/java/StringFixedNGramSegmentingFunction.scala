@@ -19,6 +19,8 @@ class StringFixedNGramSegmentingFunction(val ngram: Int) extends SegmentingFunct
       val end = begin + ngram
       val str = en.dataString.substring(begin, end)
       atoms :::= List(new StringAtom(str.hashCode.toString, "_" + str))
+      //increase frequency of occurrence of string atom
+      atoms.filter( a => a.label == str.hashCode.toString).map( a => a.frequency += 1)
       begin += 1
     }
     atoms.reverse
