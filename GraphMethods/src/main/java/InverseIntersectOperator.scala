@@ -3,7 +3,7 @@ import org.apache.spark.graphx.{Edge, Graph}
 /**
  * @author Kontopoulos Ioannis
  */
-class GraphInverseIntersector extends BinaryGraphOperator with Serializable {
+class InverseIntersectOperator extends BinaryGraphOperator with Serializable {
 
   /**
    * Creates a graph that contains the uncommon edges, the edges could be from any graph

@@ -4,13 +4,13 @@ import org.apache.spark.graphx.{Edge, Graph}
  * @author Kontopoulos Ioannis
  * @param l the learning factor
  */
-class GraphMerger(val l: Double) extends BinaryGraphOperator with Serializable {
+class IntersectOperator(val l: Double) extends BinaryGraphOperator with Serializable {
 
   /**
-   * Merges two graphs
+   * Creates a graph which contains the common edges with averaged edge weights
    * @param g1 graph1
    * @param g2 graph2
-   * @return merged graph
+   * @return intersected graph
    */
   def getResult(g1: Graph[String, Double], g2: Graph[String, Double]): Graph[String, Double] = {
     //pair edges so the common edges are the ones with same vertices pair
@@ -18,16 +18,14 @@ class GraphMerger(val l: Double) extends BinaryGraphOperator with Serializable {
     val pairs1 = g1.edges.map(edgeToPair)
     val pairs2 = g2.edges.map(edgeToPair)
     //combine edges
-    val newEdges = pairs1.union(pairs2)
-      .aggregateByKey((0.0, 0.0))(
-        (acc, e) => (acc._1 + e, acc._2 + 1.0),
-        (acc1, acc2) => (averageValues(acc1._1, acc2._1), averageValues(acc1._2, acc2._2))
-      ).map{case ((srcId, dstId), (acc, count)) => Edge(srcId, dstId, acc)}
-    //combine vertices assuming there are no conflicts like different labels
-    val newVertices = g1.vertices.union(g2.vertices).distinct
+    val newEdges = pairs1.join(pairs2)
+      .map{ case ((srcId, dstId), (value1, value2)) => Edge(srcId, dstId, averageValues(value1, value2)) }
+    //combine vertices
+    val newVertices = g1.vertices.join(g2.vertices)
+      .map{ case(id, (name1, name2)) => (id, name1) }
     //create new graph
-    val mergedGraph = Graph(newVertices, newEdges)
-    mergedGraph
+    val intersectedGraph = Graph(newVertices, newEdges)
+    intersectedGraph
   }
 
   /**

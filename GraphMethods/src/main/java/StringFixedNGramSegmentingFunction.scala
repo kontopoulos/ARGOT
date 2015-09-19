@@ -1,7 +1,7 @@
 /**
  * @author Kontopoulos Ioannis
  */
-class StringFixedNGramSegmentor(val ngram: Int) extends Segmentor {
+class StringFixedNGramSegmentingFunction(val ngram: Int) extends SegmentingFunction {
 
   /**
    * Segments a StringEntity into StringAtoms

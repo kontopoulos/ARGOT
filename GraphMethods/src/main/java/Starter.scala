@@ -6,10 +6,10 @@ import org.apache.spark.{SparkContext, SparkConf}
 object Starter {
   def main(args: Array[String]) {
     val conf = new SparkConf().setAppName("Graph Methods")
-      .setMaster("local")
+      //.setMaster("local")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.kryoserializer.buffer","24mb")
-      .registerKryoClasses(Array(classOf[GraphMerger], classOf[GraphIntersector], classOf[GraphInverseIntersector], classOf[GraphDeltaOperator]))
+      .registerKryoClasses(Array(classOf[MergeOperator], classOf[IntersectOperator], classOf[InverseIntersectOperator], classOf[DeltaOperator]))
       .set("spark.executor.memory", "2g")
     val sc = new SparkContext(conf)
 
@@ -31,25 +31,25 @@ object Starter {
     //en.dataString = "Hello Planet."
     //val ngg2 = nggc.getGraph(en)
 
-    //Use of Merger
+    //Use of Merge Operator
     //println("====Merge Graphs====")
-    //val m = new GraphMerger(0.5)
-    //val g1 = m.getResult(ngg, ngg2)
+    //val mo = new MergeOperator(0.5)
+    //val g1 = mo.getResult(ngg, ngg2)
     //g1.edges.distinct.collect.foreach(println)
     //println(g1.edges.distinct.count)
     //g1.vertices.collect.foreach(println)
 
-    //Use of Intersector
+    //Use of Intersect Operator
     //println("====Intersect Graphs====")
-    //val i = new GraphIntersector(0.5)
-    //val g2 = i.getResult(ngg, ngg2)
+    //val io = new IntersectOperator(0.5)
+    //val g2 = io.getResult(ngg, ngg2)
     //g2.edges.collect.foreach(println)
     //println(g2.edges.distinct.count)
     //g2.vertices.collect.foreach(println)
 
-    //Use of Inverse Intersector
+    //Use of Inverse Intersect Operator
     //println("====Inverse Intersect Graphs====")
-    //val ii = new GraphInverseIntersector
+    //val ii = new InverseIntersectOperator
     //val g3 = ii.getResult(ngg, ngg2)
     //g3.edges.collect.foreach(println)
     //println(g3.edges.distinct.count)
@@ -57,10 +57,10 @@ object Starter {
 
     //Use of delta operator
     //println("====Delta Operator upon Graphs====")
-    //val op = new GraphDeltaOperator
-    //val g4 = op.getResult(ngg, ngg2)
+    //val do = new DeltaOperator
+    //val g4 = do.getResult(ngg, ngg2)
     //g4.edges.collect.foreach(println)
-    //println(g4.edges.distinct.count)
+    //println(g4.vertices.distinct.count)
     //g4.vertices.collect.foreach(println)
 
     //Use of similarities

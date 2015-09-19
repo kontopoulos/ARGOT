@@ -15,7 +15,7 @@ class NGramGraphCreator(val sc: SparkContext, val ngram: Int, val dwin: Int) ext
   override def getGraph(e: Entity): Graph[String, Double] = {
     val en = e.asInstanceOf[StringEntity]
     //segment the entity
-    val seg = new StringFixedNGramSegmentor(ngram)
+    val seg = new StringFixedNGramSegmentingFunction(ngram)
     //get the list of entity atoms
     val atoms = seg.getComponents(e)
     //set the list of atoms of the entity

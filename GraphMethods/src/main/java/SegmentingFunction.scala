@@ -1,7 +1,7 @@
 /**
  * @author Kontopoulos Ioannis
  */
-trait Segmentor {
+trait SegmentingFunction {
 
   def getComponents(e: Entity): List[Atom]
 

@@ -20,7 +20,7 @@ class NGramGraphSimilarityClassifier(val sc: SparkContext) extends Classifier {
       val g = nggc.getGraph(e)
       graphs :::= List(g)
     }
-    val m = new GraphMerger(0.5)
+    val m = new MergeOperator(0.5)
     //merge graphs to a class graph
     var merged = m.getResult(graphs(0), graphs(1))
     for (i <- 2 to graphs.size-1) {

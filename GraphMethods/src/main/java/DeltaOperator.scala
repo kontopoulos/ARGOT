@@ -3,7 +3,7 @@ import org.apache.spark.graphx.{Edge, Graph}
 /**
  * @author Kontopoulos Ioannis
  */
-class GraphDeltaOperator extends BinaryGraphOperator with Serializable {
+class DeltaOperator extends BinaryGraphOperator with Serializable {
 
   /**
    * Creates a graph that contains edges from the first graph that do not exist in the second graph
