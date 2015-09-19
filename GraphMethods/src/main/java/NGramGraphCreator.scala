@@ -20,16 +20,8 @@ class NGramGraphCreator(val sc: SparkContext, val ngram: Int, val dwin: Int) ext
     val atoms = seg.getComponents(e)
     //set the list of atoms of the entity
     en.setEntityComponents(atoms.map{ case i:StringAtom => i })
-    //array that holds the vertices
-    var vertices = Array.empty[(Long, String)]
-    //create vertices
-    en.getEntityComponents.foreach{
-      i =>
-        //if a vertex exists do not add to array, vertices are unique
-        if(!(vertices contains (i.label.toLong, i.dataStream))) {
-          vertices = vertices ++ Array((i.label.toLong, i.dataStream))
-        }
-    }
+    //create distinct vertices
+    val vertices = en.getEntityComponents.map( en => (en.label.toLong, en.dataStream)).toArray.distinct
     //array that holds the edges
     var edges = Array.empty[Edge[Double]]
     //create edges based on symmetric distribution

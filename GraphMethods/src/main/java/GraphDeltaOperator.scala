@@ -26,9 +26,8 @@ class GraphDeltaOperator extends BinaryGraphOperator with Serializable {
     //get the common edges between them
     val edges = RDDWithValues.join(emptyEdges)
       .map{ case ((srcId, dstId), (value1, value2)) => Edge(srcId, dstId, value1) }
-    val vertices = g1.vertices.union(g2.vertices).distinct
     //create new graph
-    val deltaGraph = Graph(vertices, edges)
+    val deltaGraph = Graph(g1.vertices.distinct, edges)
     deltaGraph
   }
 
