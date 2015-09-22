@@ -44,11 +44,16 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
       accuracy += metrics("accuracy")
       fmeasure += metrics("fmeasure")
     }
+    //calculate averaged metrics
+    precision = precision/numFold
+    recall = recall/numFold
+    accuracy = accuracy/numFold
+    fmeasure = fmeasure/numFold
+    //calculate standard deviation
     var sum = 0.0
     preList.foreach{ p =>
       sum += Math.pow((p-precision), 2)
     }
-    //calculate standard deviation
     val stdev = Math.sqrt(sum)
     //calculate standard error
     val sterr = stdev/(Math.sqrt(numFold))
@@ -65,6 +70,14 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     println("===================================")
   }
 
+  /**
+   * Calculates the evaluation metrics of the current fold
+   * @param currentFold the fold to be validated
+   * @param ens1 entities from first category
+   * @param ens2 entities from second category
+   * @param ens3 entities from third category
+   * @return map with evaluation metrics
+   */
   def foldValidation(currentFold: Int, ens1 : List[StringEntity], ens2 : List[StringEntity], ens3 : List[StringEntity]): Map[String, Double] = {
     println("Separating training and testing datasets...")
     //get training and testing datasets from first category
@@ -77,6 +90,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     val testing3 = ens3.slice(currentFold, currentFold+ens3.size*numFold/100)
     val training3 = ens3.slice(0, currentFold) ++ ens3.slice(currentFold+ens3.size*numFold/100, ens3.size)
     println("Separation complete.")
+    println("Preparing operations...")
     val nggc = new NGramGraphCreator(sc, 3, 3)
     var graphs1: List[Graph[String, Double]] = Nil
     var graphs2: List[Graph[String, Double]] = Nil
@@ -122,11 +136,16 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
       }
       classGraph3 = m.getResult(classGraph3, graphs1(i))
     }
+    println("Preparations complete.")
     //start training
+    println("Training...")
     val cls = new NaiveBayesSimilarityClassifier(sc)
     val model = cls.train(List(classGraph1, classGraph2, classGraph3), ens1, ens2, ens3)
+    println("Training complete.")
     //start testing
+    println("Testing...")
     val metrics = cls.test(model, List(classGraph1, classGraph2, classGraph3), ens1, ens2, ens3)
+    println("Testing complete")
     println("===========================")
     println("Fold Completed = " + (currentFold+1))
     println("===========================")
