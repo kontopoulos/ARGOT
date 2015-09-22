@@ -1,5 +1,6 @@
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
+import org.apache.spark.mllib.classification.NaiveBayesModel
 
 /**
  * @author Kontopoulos Ioannis
@@ -8,8 +9,8 @@ trait Classifier {
 
   val sc: SparkContext
 
-  def train(ens: List[Entity]): Graph[String, Double]
+  def train(classGraphs: List[Graph[String, Double]], ens: List[Entity]*): Any
 
-  def test(e: Entity, graphs: List[Graph[String, Double]]): List[String]
+  def test(model: NaiveBayesModel, classGraphs: List[Graph[String, Double]], ens: List[Entity]*): Any
 
 }

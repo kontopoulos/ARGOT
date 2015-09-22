@@ -1,4 +1,5 @@
 import org.apache.spark.SparkContext
+import org.apache.spark.graphx.Graph
 
 /**
  * @author Kontopoulos Ioannis
@@ -6,7 +7,7 @@ import org.apache.spark.SparkContext
 class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Experiment {
 
   /**
-   * Run the n-fold cross validation experiment
+   * Runs the n-fold cross validation
    */
   override def run() = {
     println("Reading files...")
@@ -30,19 +31,27 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
       ens3 :::= List(e)
     }
     println("Reading complete.")
+    var preList: List[Double] = Nil
     var precision = 0.0
     var recall = 0.0
     var accuracy = 0.0
+    var fmeasure = 0.0
     for (j <- 0 to numFold-1) {
-      val values = foldValidation(j, ens1, ens2, ens3)
-      precision += values("precision")
-      recall += values("recall")
-      accuracy += values("accuracy")
+      val metrics = foldValidation(j, ens1, ens2, ens3)
+      precision += metrics("precision")
+      preList :::= List(metrics("precision"))
+      recall += metrics("recall")
+      accuracy += metrics("accuracy")
+      fmeasure += metrics("fmeasure")
     }
-    precision = precision/numFold
-    recall = recall/numFold
-    accuracy = accuracy/numFold
-    val fmeasure = 2*(precision*recall)/(precision + recall)
+    var sum = 0.0
+    preList.foreach{ p =>
+      sum += Math.pow((p-precision), 2)
+    }
+    //calculate standard deviation
+    val stdev = Math.sqrt(sum)
+    //calculate standard error
+    val sterr = stdev/(Math.sqrt(numFold))
     println("===================================")
     println("Precision = " + precision)
     println("===================================")
@@ -52,16 +61,10 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     println("===================================")
     println("F-measure = " + fmeasure)
     println("===================================")
+    println("Standard Deviation of Precision = " + stdev + " Standard Error = " + sterr)
+    println("===================================")
   }
 
-  /**
-   * Calculates the precision, recall and accuracy of a fold
-   * @param currentFold the number of current fold to validate
-   * @param ens1 list of entities of first class
-   * @param ens2 list of entities of second class
-   * @param ens3 list of entities of third class
-   * @return map with the corresponding values
-   */
   def foldValidation(currentFold: Int, ens1 : List[StringEntity], ens2 : List[StringEntity], ens3 : List[StringEntity]): Map[String, Double] = {
     println("Separating training and testing datasets...")
     //get training and testing datasets from first category
@@ -74,146 +77,60 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     val testing3 = ens3.slice(currentFold, currentFold+ens3.size*numFold/100)
     val training3 = ens3.slice(0, currentFold) ++ ens3.slice(currentFold+ens3.size*numFold/100, ens3.size)
     println("Separation complete.")
-    println("Training...")
-    //start training upon datasets
-    val cls = new NGramGraphSimilarityClassifier(sc)
-    val g01 = cls.train(training1)
-    val g02 = cls.train(training2)
-    val g03 = cls.train(training3)
-    println("Training complete.")
-    //start testing datasets
-    //values for first class
-    var tp01 = 0
-    var fp01 = 0
-    var tn01 = 0
-    var fn01 = 0
-    //values for second class
-    var tp02 = 0
-    var fp02 = 0
-    var tn02 = 0
-    var fn02 = 0
-    //values for third class
-    var tp03 = 0
-    var fp03 = 0
-    var tn03 = 0
-    var fn03 = 0
-    testing1.foreach{ e =>
-      val label = cls.test(e, List(g01, g02, g03))
-      if (label(0) == "C01") {
-        //true positive for C01
-        tp01 += 1
-        //true negative for C02
-        tn02 += 1
-        //true negative for C03
-        tn03 += 1
+    val nggc = new NGramGraphCreator(sc, 3, 3)
+    var graphs1: List[Graph[String, Double]] = Nil
+    var graphs2: List[Graph[String, Double]] = Nil
+    var graphs3: List[Graph[String, Double]] = Nil
+    //create graphs from entities
+    training1.foreach{ e =>
+      val g = nggc.getGraph(e)
+      graphs1 :::= List(g)
+    }
+    training2.foreach{ e =>
+      val g = nggc.getGraph(e)
+      graphs2 :::= List(g)
+    }
+    training3.foreach{ e =>
+      val g = nggc.getGraph(e)
+      graphs3 :::= List(g)
+    }
+    val m = new MergeOperator(0.5)
+    //merge graphs from first training set to a class graph
+    var classGraph1 = m.getResult(graphs1(0), graphs1(1))
+    for (i <- 2 to graphs1.size-1) {
+      if (i % 30 == 0) {
+        //every 30 iterations cut the lineage, due to long iteration
+        classGraph1 = Graph(classGraph1.vertices.distinct, classGraph1.edges.distinct)
       }
-      else if (label(0) == "C02") {
-        //false positive for C02
-        fp02 += 1
-        //false negative for C01
-        fn01 += 1
+      classGraph1 = m.getResult(classGraph1, graphs1(i))
+    }
+    //merge graphs from second training set to a class graph
+    var classGraph2 = m.getResult(graphs2(0), graphs2(1))
+    for (i <- 2 to graphs2.size-1) {
+      if (i % 30 == 0) {
+        //every 30 iterations cut the lineage, due to long iteration
+        classGraph2 = Graph(classGraph2.vertices.distinct, classGraph2.edges.distinct)
       }
-      else {
-        //false positive for C03
-        fp03 += 1
-        //false negative for C01
-        fn01 += 1
+      classGraph2 = m.getResult(classGraph2, graphs1(i))
+    }
+    //merge graphs from third training set to a class graph
+    var classGraph3 = m.getResult(graphs3(0), graphs3(1))
+    for (i <- 2 to graphs3.size-1) {
+      if (i % 30 == 0) {
+        //every 30 iterations cut the lineage, due to long iteration
+        classGraph3 = Graph(classGraph3.vertices.distinct, classGraph3.edges.distinct)
       }
+      classGraph3 = m.getResult(classGraph3, graphs1(i))
     }
-    testing2.foreach{ e =>
-      val label = cls.test(e, List(g01, g02, g03))
-      if (label(0) == "C02") {
-        //true positive for C02
-        tp02 += 1
-        //true negative for C01
-        tn01 += 1
-        //true negative for C03
-        tn03 += 1
-      }
-      else if (label(0) == "C01") {
-        //false positive for C01
-        fp01 += 1
-        //false negative for C02
-        fn02 += 1
-      }
-      else {
-        //false positive for C03
-        fp03 += 1
-        //false negative for C02
-        fn02 += 1
-      }
-    }
-    testing3.foreach{ e =>
-      val label = cls.test(e, List(g01, g02, g03))
-      if (label(0) == "C03") {
-        //true positive for C03
-        tp03 += 1
-        //true negative for C01
-        tn01 += 1
-        //true negative for C02
-        tn02 += 1
-      }
-      else if (label(0) == "C01") {
-        //false positive for C01
-        fp01 += 1
-        //false negative for C03
-        fn03 += 1
-      }
-      else {
-        //false positive for C02
-        fp02 += 1
-        //false negative for C03
-        fn03 += 1
-      }
-    }
-    //calculate precision
-    var precision1 = 0.0
-    if ((tp01 + fp01) != 0) {
-      precision1 = tp01.toDouble/(tp01 + fp01)
-    }
-    var precision2 = 0.0
-    if ((tp02 + fp02) != 0) {
-      precision2 = tp02.toDouble/(tp02 + fp02)
-    }
-    var precision3 = 0.0
-    if ((tp03 + fp03) != 0) {
-      precision3 = tp03.toDouble/(tp03 + fp03)
-    }
-    //calculate recall
-    var recall1 = 0.0
-    if ((tp01 + fn01) != 0) {
-      recall1 = tp01.toDouble/(tp01 + fn01)
-    }
-    var recall2 = 0.0
-    if ((tp02 + fn02) != 0) {
-      recall2 = tp02.toDouble/(tp02 + fn02)
-    }
-    var recall3 = 0.0
-    if ((tp03 + fn03) != 0) {
-      recall3 = tp03.toDouble/(tp03 + fn03)
-    }
-    //calculate accuracy
-    var accuracy1 = 0.0
-    if ((tp01 + fp01 + tn01 + fn01) != 0) {
-      accuracy1 = (tp01 + tn01).toDouble/(tp01 + fp01 + tn01 + fn01)
-    }
-    var accuracy2 = 0.0
-    if ((tp02 + fp02 + tn02 + fn02) != 0) {
-      accuracy2 = (tp02 + tn02).toDouble/(tp02 + fp02 + tn02 + fn02)
-    }
-    var accuracy3 = 0.0
-    if ((tp03 + fp03 + tn03 + fn03) != 0) {
-      accuracy3 = (tp03 + tn03).toDouble/(tp03 + fp03 + tn03 + fn03)
-    }
-    //calculate averaged values
-    val precision = (precision1 + precision2 + precision3)/3
-    val recall = (recall1 + recall2 + recall3)/3
-    val accuracy = (accuracy1 + accuracy2 + accuracy3)/3
-    println("===================================")
-    println("Fold Completed = " + (currentFold + 1))
-    println("===================================")
-    val values = Map("precision" -> precision, "recall" -> recall, "accuracy" -> accuracy)
-    values
+    //start training
+    val cls = new NaiveBayesSimilarityClassifier(sc)
+    val model = cls.train(List(classGraph1, classGraph2, classGraph3), ens1, ens2, ens3)
+    //start testing
+    val metrics = cls.test(model, List(classGraph1, classGraph2, classGraph3), ens1, ens2, ens3)
+    println("===========================")
+    println("Fold Completed = " + (currentFold+1))
+    println("===========================")
+    metrics
   }
 
 }
