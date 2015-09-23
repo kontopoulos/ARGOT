@@ -140,11 +140,11 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     //start training
     println("Training...")
     val cls = new NaiveBayesSimilarityClassifier(sc)
-    val model = cls.train(List(classGraph1, classGraph2, classGraph3), ens1, ens2, ens3)
+    val model = cls.train(List(classGraph1, classGraph2, classGraph3), training1, training2, training3)
     println("Training complete.")
     //start testing
     println("Testing...")
-    val metrics = cls.test(model, List(classGraph1, classGraph2, classGraph3), ens1, ens2, ens3)
+    val metrics = cls.test(model, List(classGraph1, classGraph2, classGraph3), testing1, testing2, testing3)
     println("Testing complete")
     println("===========================")
     println("Fold Completed = " + (currentFold+1))
