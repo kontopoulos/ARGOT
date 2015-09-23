@@ -55,6 +55,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     preList.foreach{ p =>
       sum += Math.pow((p-precision), 2)
     }
+    sum = sum/numFold
     val stdev = Math.sqrt(sum)
     //calculate standard error
     val sterr = stdev/(Math.sqrt(numFold))
@@ -199,6 +200,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     preList.foreach{ p =>
       sum += Math.pow((p-precision), 2)
     }
+    sum = sum/numFold
     val stdev = Math.sqrt(sum)
     //calculate standard error
     val sterr = stdev/(Math.sqrt(numFold))
