@@ -1,6 +1,6 @@
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
-import org.apache.spark.mllib.classification.{NaiveBayesModel, NaiveBayes}
+import org.apache.spark.mllib.classification.{ClassificationModel, NaiveBayesModel, NaiveBayes}
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -11,8 +11,6 @@ import org.apache.spark.mllib.regression.LabeledPoint
  */
 class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifier {
 
-  var model: NaiveBayesModel = null
-
   /**
    * Creates Naive Bayes Model based on labeled points from training sets
    * Each labeled point consists of a label and a feature vector
@@ -20,7 +18,7 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
    * @param ens array of lists containing entities of the training set
    * @return labeled points
    */
-  override def train(classGraphs: List[Graph[String, Double]], ens: List[Entity]*) = {
+  override def train(classGraphs: List[Graph[String, Double]], ens: List[Entity]*): NaiveBayesModel = {
     val es1 = ens(0).asInstanceOf[List[StringEntity]]
     val es2 = ens(1).asInstanceOf[List[StringEntity]]
     val es3 = ens(2).asInstanceOf[List[StringEntity]]
@@ -57,7 +55,8 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(2.0, Vectors.dense(gs1.getSimilarityComponents("value"), gs1.getSimilarityComponents("containment"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("value"), gs2.getSimilarityComponents("containment"), gs2.getSimilarityComponents("normalized"), gs3.getSimilarityComponents("value"), gs3.getSimilarityComponents("containment"), gs3.getSimilarityComponents("normalized"))))
     }
     val parallelLabeledPoints = sc.parallelize(labelsAndFeatures)
-    this.model = NaiveBayes.train(parallelLabeledPoints)
+    val model = NaiveBayes.train(parallelLabeledPoints)
+    model
   }
 
   /**
@@ -66,7 +65,8 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
    * @param ens array of lists containing entities of the testing set
    * @return map with values of precision, recall, accuracy and f-measure
    */
-  override def test(classGraphs: List[Graph[String, Double]], ens: List[Entity]*): Map[String, Double] = {
+  override def test(model: ClassificationModel, classGraphs: List[Graph[String, Double]], ens: List[Entity]*): Map[String, Double] = {
+    val trainedModel = model.asInstanceOf[NaiveBayesModel]
     val es1 = ens(0).asInstanceOf[List[StringEntity]]
     val es2 = ens(1).asInstanceOf[List[StringEntity]]
     val es3 = ens(2).asInstanceOf[List[StringEntity]]
@@ -104,7 +104,7 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
     }
     val test = sc.parallelize(labelsAndFeatures)
     //compute raw scores on the test set.
-    val predictionAndLabels = test.map(p => (this.model.predict(p.features), p.label))
+    val predictionAndLabels = test.map(p => (trainedModel.predict(p.features), p.label))
     //get evaluation metrics.
     val metrics = new MulticlassMetrics(predictionAndLabels)
     val precision = metrics.precision
