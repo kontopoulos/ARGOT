@@ -8,9 +8,32 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
 
   /**
    * Runs the n-fold cross validation
+   * using the selected classifier
+   * @param classifier type of classifier
+   */
+  override def run(classifier: String) = {
+    if (classifier == "NaiveBayes") {
+      println("Naive Bayes selected")
+      runWithNaiveBayesClassifier()
+    }
+    else if (classifier == "SVMwithSGD") {
+      println("Support Vector Machines with Stochastic Gradient Descent selected")
+      runWithSVMwithSGDClassifier()
+    }
+    else if (classifier == "simple") {
+      println("Simple Classifier selected")
+      runWithSimpleClassifier()
+    }
+    else {
+      println("Wrong option!!!")
+    }
+  }
+
+  /**
+   * Runs the n-fold cross validation
    * using Naive Bayes Classifier
    */
-  override def run() = {
+  private def runWithNaiveBayesClassifier() = {
     println("Reading files...")
     var ens1 : List[StringEntity] = Nil
     var ens2 : List[StringEntity] = Nil
@@ -38,7 +61,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     var accuracy = 0.0
     var fmeasure = 0.0
     for (j <- 0 to numFold-1) {
-      val metrics = foldValidation(j, ens1, ens2, ens3)
+      val metrics = naiveBayesFoldValidation(j, ens1, ens2, ens3)
       precision += metrics("precision")
       preList :::= List(metrics("precision"))
       recall += metrics("recall")
@@ -68,7 +91,9 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     println("===================================")
     println("F-measure = " + fmeasure)
     println("===================================")
-    println("Standard Deviation of Precision = " + stdev + " Standard Error = " + sterr)
+    println("Standard Deviation of Precision = " + stdev)
+    println("===================================")
+    println("Standard Error of Precision = " + sterr)
     println("===================================")
   }
 
@@ -80,7 +105,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
    * @param ens3 entities from third category
    * @return map with evaluation metrics
    */
-  private def foldValidation(currentFold: Int, ens1 : List[StringEntity], ens2 : List[StringEntity], ens3 : List[StringEntity]): Map[String, Double] = {
+  private def naiveBayesFoldValidation(currentFold: Int, ens1 : List[StringEntity], ens2 : List[StringEntity], ens3 : List[StringEntity]): Map[String, Double] = {
     println("Separating training and testing datasets...")
     //get training and testing datasets from first category
     val testing1 = ens1.slice(currentFold, currentFold+ens1.size*numFold/100)
@@ -127,7 +152,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
         //every 30 iterations cut the lineage, due to long iteration
         classGraph2 = Graph(classGraph2.vertices.distinct, classGraph2.edges.distinct)
       }
-      classGraph2 = m.getResult(classGraph2, graphs1(i))
+      classGraph2 = m.getResult(classGraph2, graphs2(i))
     }
     //merge graphs from third training set to a class graph
     var classGraph3 = m.getResult(graphs3(0), graphs3(1))
@@ -136,17 +161,133 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
         //every 30 iterations cut the lineage, due to long iteration
         classGraph3 = Graph(classGraph3.vertices.distinct, classGraph3.edges.distinct)
       }
-      classGraph3 = m.getResult(classGraph3, graphs1(i))
+      classGraph3 = m.getResult(classGraph3, graphs3(i))
     }
     println("Preparations complete.")
     //start training
     println("Training...")
     val cls = new NaiveBayesSimilarityClassifier(sc)
-    cls.train(List(classGraph1, classGraph2, classGraph3), training1, training2, training3)
+    val model = cls.train(List(classGraph1, classGraph2, classGraph3), training1, training2, training3)
     println("Training complete.")
     //start testing
     println("Testing...")
-    val metrics = cls.test(List(classGraph1, classGraph2, classGraph3), testing1, testing2, testing3)
+    val metrics = cls.test(model, List(classGraph1, classGraph2, classGraph3), testing1, testing2, testing3)
+    println("Testing complete")
+    println("===========================")
+    println("Fold Completed = " + (currentFold+1))
+    println("===========================")
+    metrics
+  }
+
+  /**
+   * Runs the n-fold cross validation
+   * using the Support Vector Machines with Stochastic Gradient Descent Similarity Classifier
+   */
+  private def runWithSVMwithSGDClassifier() = {
+    println("Reading files...")
+    var ens1 : List[StringEntity] = Nil
+    var ens2 : List[StringEntity] = Nil
+    //read files
+    new java.io.File("C01/").listFiles.foreach{ f =>
+      val e = new StringEntity
+      e.readDataStringFromFile("C01/" + f.getName)
+      ens1 :::= List(e)
+    }
+    new java.io.File("C02/").listFiles.foreach{ f =>
+      val e = new StringEntity
+      e.readDataStringFromFile("C02/" + f.getName)
+      ens2 :::= List(e)
+    }
+    println("Reading complete.")
+    var aurList: List[Double] = Nil
+    var areaUnderRoc = 0.0
+    var areaUnderPR = 0.0
+    for (j <- 0 to numFold-1) {
+      val metrics = svmFoldValidation(j, ens1, ens2)
+      areaUnderRoc += metrics("areaUnderRoc")
+      aurList :::= List(metrics("areaUnderRoc"))
+      areaUnderPR += metrics("areaUnderPR")
+    }
+    //calculate averaged metrics
+    areaUnderRoc = areaUnderRoc/numFold
+    areaUnderPR = areaUnderPR/numFold
+    //calculate standard deviation
+    var sum = 0.0
+    aurList.foreach{ p =>
+      sum += Math.pow((p-areaUnderRoc), 2)
+    }
+    sum = sum/numFold
+    val stdev = Math.sqrt(sum)
+    //calculate standard error
+    val sterr = stdev/(Math.sqrt(numFold))
+    println("===================================")
+    println("Area Under ROC = " + areaUnderRoc)
+    println("===================================")
+    println("Area Under PR = " + areaUnderPR)
+    println("===================================")
+    println("Standard Deviation of Area Under ROC = " + stdev)
+    println("===================================")
+    println("Standard Error of Area Under ROC = " + sterr)
+    println("===================================")
+  }
+
+  /**
+   * Calculates the evaluation metrics of the current fold
+   * @param currentFold the fold to be validated
+   * @param ens1 entities from first category
+   * @param ens2 entities from second category
+   * @return map with evaluation metrics
+   */
+  private def svmFoldValidation(currentFold: Int, ens1 : List[StringEntity], ens2 : List[StringEntity]): Map[String, Double] = {
+    println("Separating training and testing datasets...")
+    //get training and testing datasets from first category
+    val testing1 = ens1.slice(currentFold, currentFold+ens1.size*numFold/100)
+    val training1 = ens1.slice(0, currentFold) ++ ens1.slice(currentFold+ens1.size*numFold/100, ens1.size)
+    //get training and testing datasets from second category
+    val testing2 = ens2.slice(currentFold, currentFold+ens2.size*numFold/100)
+    val training2 = ens2.slice(0, currentFold) ++ ens2.slice(currentFold+ens2.size*numFold/100, ens2.size)
+    println("Separation complete.")
+    println("Preparing operations...")
+    val nggc = new NGramGraphCreator(sc, 3, 3)
+    var graphs1: List[Graph[String, Double]] = Nil
+    var graphs2: List[Graph[String, Double]] = Nil
+    //create graphs from entities
+    training1.foreach{ e =>
+      val g = nggc.getGraph(e)
+      graphs1 :::= List(g)
+    }
+    training2.foreach{ e =>
+      val g = nggc.getGraph(e)
+      graphs2 :::= List(g)
+    }
+    val m = new MergeOperator(0.5)
+    //merge graphs from first training set to a class graph
+    var classGraph1 = m.getResult(graphs1(0), graphs1(1))
+    for (i <- 2 to graphs1.size-1) {
+      if (i % 30 == 0) {
+        //every 30 iterations cut the lineage, due to long iteration
+        classGraph1 = Graph(classGraph1.vertices.distinct, classGraph1.edges.distinct)
+      }
+      classGraph1 = m.getResult(classGraph1, graphs1(i))
+    }
+    //merge graphs from second training set to a class graph
+    var classGraph2 = m.getResult(graphs2(0), graphs2(1))
+    for (i <- 2 to graphs2.size-1) {
+      if (i % 30 == 0) {
+        //every 30 iterations cut the lineage, due to long iteration
+        classGraph2 = Graph(classGraph2.vertices.distinct, classGraph2.edges.distinct)
+      }
+      classGraph2 = m.getResult(classGraph2, graphs2(i))
+    }
+    println("Preparations complete.")
+    //start training
+    println("Training...")
+    val cls = new SVMwithSGDSimilarityClassifier(sc)
+    val model = cls.train(List(classGraph1, classGraph2), training1, training2)
+    println("Training complete.")
+    //start testing
+    println("Testing...")
+    val metrics = cls.test(model, List(classGraph1, classGraph2), testing1, testing2)
     println("Testing complete")
     println("===========================")
     println("Fold Completed = " + (currentFold+1))
@@ -158,7 +299,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
    * Runs the n-fold cross validation
    * using the Simple Similarity Classifier
    */
-  def runWithSimpleClassifier() = {
+  private def runWithSimpleClassifier() = {
     println("Reading files...")
     var ens1 : List[StringEntity] = Nil
     var ens2 : List[StringEntity] = Nil
