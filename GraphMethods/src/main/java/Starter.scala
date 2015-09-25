@@ -1,7 +1,7 @@
 import org.apache.spark.{SparkContext, SparkConf}
 
 /**
- * Created by Kontopoulos Ioannis
+ * @author Kontopoulos Ioannis
  */
 object Starter {
   def main(args: Array[String]) {
@@ -14,7 +14,7 @@ object Starter {
     val sc = new SparkContext(conf)
 
     val exp = new nFoldCrossValidation(sc, 10)
-    exp.run("SVMwithSGD")
+    exp.run(args(0))
 
 
 
