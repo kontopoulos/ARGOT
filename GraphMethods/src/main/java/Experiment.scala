@@ -7,6 +7,6 @@ trait Experiment {
 
   val sc: SparkContext
 
-  def run()
+  def run(classifier: String)
 
 }

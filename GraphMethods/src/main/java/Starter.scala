@@ -10,11 +10,11 @@ object Starter {
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.kryoserializer.buffer","24mb")
       .registerKryoClasses(Array(classOf[MergeOperator], classOf[IntersectOperator], classOf[InverseIntersectOperator], classOf[DeltaOperator]))
-      .set("spark.executor.memory", "2g")
+      .set("spark.executor.memory", "16g")
     val sc = new SparkContext(conf)
 
     val exp = new nFoldCrossValidation(sc, 10)
-    exp.run
+    exp.run("SVMwithSGD")
 
 
 
