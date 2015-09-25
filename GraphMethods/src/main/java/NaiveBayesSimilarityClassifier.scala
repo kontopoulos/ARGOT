@@ -6,7 +6,7 @@ import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.regression.LabeledPoint
 
 /**
- * Naive Bayes ModelClassifier
+ * Naive Bayes Classifier
  * @author Kontopoulos Ioannis
  */
 class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifier {
