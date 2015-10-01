@@ -1,7 +1,7 @@
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
 import org.apache.spark.mllib.classification.{SVMWithSGD, SVMModel, ClassificationModel}
-import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.regression.LabeledPoint
 
@@ -42,7 +42,7 @@ class SVMwithSGDSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       //vector space consists of value, containment and normalized value similarity
       labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(1.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
-    val parallelLabeledPoints = sc.parallelize(labelsAndFeatures)
+    val parallelLabeledPoints = sc.parallelize(labelsAndFeatures, 1)
     //run training algorithm to build the model
     val numIterations = 100
     val model = SVMWithSGD.train(parallelLabeledPoints, numIterations)
@@ -81,17 +81,19 @@ class SVMwithSGDSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       //vector space consists of value, containment and normalized value similarity
       labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(1.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
-    val test = sc.parallelize(labelsAndFeatures)
+    val test = sc.parallelize(labelsAndFeatures, 1)
     //compute raw scores on the test set.
     val scoreAndLabels = test.map { point =>
       val score = trainedModel.predict(point.features)
       (score, point.label)
     }
     //get evaluation metrics.
-    val metrics = new BinaryClassificationMetrics(scoreAndLabels)
-    val areaUnderRoc = metrics.areaUnderROC
-    val areaUnderPR = metrics.areaUnderPR
-    val values = Map("areaUnderRoc" -> areaUnderRoc, "areaUnderPR" -> areaUnderPR)
+    val metrics = new MulticlassMetrics(scoreAndLabels)
+    val precision = metrics.precision
+    val recall = metrics.recall
+    val accuracy = 1.0 * scoreAndLabels.filter(x => x._1 == x._2).count() / test.count()
+    val fmeasure = metrics.fMeasure
+    val values = Map("precision" -> precision, "recall" -> recall, "accuracy" -> accuracy, "fmeasure" -> fmeasure)
     values
   }
 }

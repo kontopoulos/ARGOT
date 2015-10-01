@@ -6,7 +6,7 @@ import org.apache.spark.{SparkContext, SparkConf}
 object Starter {
   def main(args: Array[String]) {
     val conf = new SparkConf().setAppName("Graph Methods")
-      //.setMaster("local")
+      //.setMaster("local[*]")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.kryoserializer.buffer","24mb")
       .registerKryoClasses(Array(classOf[MergeOperator], classOf[IntersectOperator], classOf[InverseIntersectOperator], classOf[DeltaOperator]))

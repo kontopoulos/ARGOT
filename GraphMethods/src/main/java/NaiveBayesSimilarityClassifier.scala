@@ -21,7 +21,6 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
   override def train(classGraphs: List[Graph[String, Double]], ens: List[Entity]*): NaiveBayesModel = {
     val es1 = ens(0).asInstanceOf[List[StringEntity]]
     val es2 = ens(1).asInstanceOf[List[StringEntity]]
-    val es3 = ens(2).asInstanceOf[List[StringEntity]]
     //labelsAndFeatures holds the labeled points for the training model
     var labelsAndFeatures = Array.empty[LabeledPoint]
     //create proper instances for graph creation and similarity calculation
@@ -32,29 +31,18 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs(0))
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
-      val gs3 = gsc.getSimilarity(g, classGraphs(2))
       //vector space consists of value, containment and normalized value similarity
-      labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(0.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs3.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs3.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"), gs3.getSimilarityComponents("normalized"))))
+      labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(0.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
     //create labeled points from second category
     es2.foreach{ e =>
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs(0))
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
-      val gs3 = gsc.getSimilarity(g, classGraphs(2))
       //vector space consists of value, containment and normalized value similarity
-      labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(1.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs3.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs3.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"), gs3.getSimilarityComponents("normalized"))))
+      labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(1.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
-    //create labeled points from third category
-    es3.foreach{ e =>
-      val g = nggc.getGraph(e)
-      val gs1 = gsc.getSimilarity(g, classGraphs(0))
-      val gs2 = gsc.getSimilarity(g, classGraphs(1))
-      val gs3 = gsc.getSimilarity(g, classGraphs(2))
-      //vector space consists of value, containment and normalized value similarity
-      labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(2.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs3.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs3.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"), gs3.getSimilarityComponents("normalized"))))
-    }
-    val parallelLabeledPoints = sc.parallelize(labelsAndFeatures)
+    val parallelLabeledPoints = sc.parallelize(labelsAndFeatures, 1)
     //run training algorithm to build the model
     val model = NaiveBayes.train(parallelLabeledPoints)
     model
@@ -71,7 +59,6 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
     val trainedModel = model.asInstanceOf[NaiveBayesModel]
     val es1 = ens(0).asInstanceOf[List[StringEntity]]
     val es2 = ens(1).asInstanceOf[List[StringEntity]]
-    val es3 = ens(2).asInstanceOf[List[StringEntity]]
     //labelsAndFeatures holds the labeled points from the testing set
     var labelsAndFeatures = Array.empty[LabeledPoint]
     //create proper instances for graph creation and similarity calculation
@@ -82,29 +69,18 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs(0))
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
-      val gs3 = gsc.getSimilarity(g, classGraphs(2))
       //vector space consists of value, containment and normalized value similarity
-      labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(0.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs3.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs3.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"), gs3.getSimilarityComponents("normalized"))))
+      labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(0.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
     //create labeled points from second category
     es2.foreach{ e =>
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs(0))
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
-      val gs3 = gsc.getSimilarity(g, classGraphs(2))
       //vector space consists of value, containment and normalized value similarity
-      labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(1.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs3.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs3.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"), gs3.getSimilarityComponents("normalized"))))
+      labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(1.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
-    //create labeled points from third category
-    es3.foreach{ e =>
-      val g = nggc.getGraph(e)
-      val gs1 = gsc.getSimilarity(g, classGraphs(0))
-      val gs2 = gsc.getSimilarity(g, classGraphs(1))
-      val gs3 = gsc.getSimilarity(g, classGraphs(2))
-      //vector space consists of value, containment and normalized value similarity
-      labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(2.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs3.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs3.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"), gs3.getSimilarityComponents("normalized"))))
-    }
-    val test = sc.parallelize(labelsAndFeatures)
+    val test = sc.parallelize(labelsAndFeatures, 1)
     //compute raw scores on the test set.
     val predictionAndLabels = test.map(point => (trainedModel.predict(point.features), point.label))
     //get evaluation metrics.
