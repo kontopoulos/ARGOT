@@ -36,9 +36,9 @@ class NGramGraphCreator(val sc: SparkContext, val ngram: Int, val dwin: Int) ext
       }
     }
     //create vertex RDD from vertices array
-    val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices, 1)
+    val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices)
     //create edge RDD from edges array
-    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges, 1)
+    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges)
     //create graph from vertices and edges arrays, erase duplicate edges and increase occurence
     val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD).partitionBy(PartitionStrategy.EdgePartition2D).groupEdges( (a, b) => a + b )
     //return graph

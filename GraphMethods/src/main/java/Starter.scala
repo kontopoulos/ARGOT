@@ -1,4 +1,6 @@
 import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
 
 /**
  * @author Kontopoulos Ioannis
@@ -6,17 +8,18 @@ import org.apache.spark.{SparkContext, SparkConf}
 object Starter {
   def main(args: Array[String]) {
     val conf = new SparkConf().setAppName("Graph Methods")
-      //.setMaster("local[*]")
+      .setMaster("local[*]")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .set("spark.kryoserializer.buffer","24mb")
-      .registerKryoClasses(Array(classOf[MergeOperator], classOf[IntersectOperator], classOf[InverseIntersectOperator], classOf[DeltaOperator]))
-      .set("spark.executor.memory", "16g")
+      .set("spark.kryoserializer.buffer","64mb")
+      .registerKryoClasses(Array(classOf[MergeOperator], classOf[IntersectOperator], classOf[InverseIntersectOperator], classOf[DeltaOperator], classOf[GraphSimilarityCalculator]))
+      .set("spark.executor.memory", "4g")
     val sc = new SparkContext(conf)
 
+    Logger.getLogger("org").setLevel(Level.OFF)
+    Logger.getLogger("akka").setLevel(Level.OFF)
+
     val exp = new nFoldCrossValidation(sc, 10)
-    exp.run(args(0))
-
-
+    exp.run("simple")
 
     //Examples of basic use
 

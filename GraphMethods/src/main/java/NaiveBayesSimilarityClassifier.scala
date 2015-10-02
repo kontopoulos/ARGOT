@@ -42,7 +42,7 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       //vector space consists of value, containment and normalized value similarity
       labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(1.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
-    val parallelLabeledPoints = sc.parallelize(labelsAndFeatures, 1)
+    val parallelLabeledPoints = sc.parallelize(labelsAndFeatures)
     //run training algorithm to build the model
     val model = NaiveBayes.train(parallelLabeledPoints)
     model
@@ -80,7 +80,7 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       //vector space consists of value, containment and normalized value similarity
       labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(1.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
-    val test = sc.parallelize(labelsAndFeatures, 1)
+    val test = sc.parallelize(labelsAndFeatures)
     //compute raw scores on the test set.
     val predictionAndLabels = test.map(point => (trainedModel.predict(point.features), point.label))
     //get evaluation metrics.
