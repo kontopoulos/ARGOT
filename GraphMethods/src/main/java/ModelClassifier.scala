@@ -9,8 +9,8 @@ trait ModelClassifier {
 
   val sc: SparkContext
 
-  def train(classGraphs: List[Graph[String, Double]], ens: List[Entity]*): ClassificationModel
+  def train(classGraphs: List[Graph[String, Double]], files: Array[String]*): ClassificationModel
 
-  def test(model: ClassificationModel, classGraphs: List[Graph[String, Double]], ens: List[Entity]*): Map[String, Double]
+  def test(model: ClassificationModel, classGraphs: List[Graph[String, Double]], files: Array[String]*): Map[String, Double]
 
 }

@@ -34,7 +34,7 @@ class StringEntity extends Entity {
   def readDataStringFromFile(file: String) = {
     try {
       val source = scala.io.Source.fromFile(file)
-      dataString = source.mkString
+      dataString = source.mkString.replaceAll("\n", " ")
       source.close()
     }
     catch {

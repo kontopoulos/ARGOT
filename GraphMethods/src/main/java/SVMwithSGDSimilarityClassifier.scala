@@ -15,19 +15,19 @@ class SVMwithSGDSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
    * Creates Support Vector Machines with Stochastic Gradient Descent Model based on labeled points from training sets
    * Each labeled point consists of a label and a feature vector
    * @param classGraphs list of graphs containing the class graphs
-   * @param ens array of lists containing entities of the training set
+   * @param files array containing files of the training set
    * @return training model
    */
-  override def train(classGraphs: List[Graph[String, Double]], ens: List[Entity]*): SVMModel = {
-    val es1 = ens(0).asInstanceOf[List[StringEntity]]
-    val es2 = ens(1).asInstanceOf[List[StringEntity]]
+  override def train(classGraphs: List[Graph[String, Double]], files: Array[String]*): SVMModel = {
     //labelsAndFeatures holds the labeled points for the training model
     var labelsAndFeatures = Array.empty[LabeledPoint]
     //create proper instances for graph creation and similarity calculation
     val nggc = new NGramGraphCreator(sc, 3, 3)
     val gsc = new GraphSimilarityCalculator
     //create labeled points from first category
-    es1.foreach{ e =>
+    files(0).foreach{ f =>
+      val e = new StringEntity
+      e.readDataStringFromFile(f)
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs(0))
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
@@ -35,7 +35,9 @@ class SVMwithSGDSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(0.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
     //create labeled points from second category
-    es2.foreach{ e =>
+    files(1).foreach{ f =>
+      val e = new StringEntity
+      e.readDataStringFromFile(f)
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs(0))
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
@@ -51,22 +53,22 @@ class SVMwithSGDSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
 
   /**
    * Creates labeled points from testing sets and test them with the model provided
-   * @param model the trained model
+   * @param model classification model
    * @param classGraphs list of graphs containing the class graphs
-   * @param ens array of lists containing entities of the testing set
-   * @return map with values of areaUnderRoc, areaUnderPR
+   * @param files array containing files of the training set
+   * @return map with evaluation metrics
    */
-  override def test(model: ClassificationModel, classGraphs: List[Graph[String, Double]], ens: List[Entity]*): Map[String, Double] = {
+  override def test(model: ClassificationModel, classGraphs: List[Graph[String, Double]], files: Array[String]*): Map[String, Double] = {
     val trainedModel = model.asInstanceOf[SVMModel]
-    val es1 = ens(0).asInstanceOf[List[StringEntity]]
-    val es2 = ens(1).asInstanceOf[List[StringEntity]]
     //labelsAndFeatures holds the labeled points from the testing set
     var labelsAndFeatures = Array.empty[LabeledPoint]
     //create proper instances for graph creation and similarity calculation
     val nggc = new NGramGraphCreator(sc, 3, 3)
     val gsc = new GraphSimilarityCalculator
     //create labeled points from first category
-    es1.foreach{ e =>
+    files(0).foreach{ f =>
+      val e = new StringEntity
+      e.readDataStringFromFile(f)
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs(0))
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
@@ -74,7 +76,9 @@ class SVMwithSGDSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(0.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
     //create labeled points from second category
-    es2.foreach{ e =>
+    files(1).foreach{ f =>
+      val e = new StringEntity
+      e.readDataStringFromFile(f)
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs(0))
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
@@ -83,17 +87,15 @@ class SVMwithSGDSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
     }
     val test = sc.parallelize(labelsAndFeatures)
     //compute raw scores on the test set.
-    val scoreAndLabels = test.map { point =>
-      val score = trainedModel.predict(point.features)
-      (score, point.label)
-    }
+    val predictionAndLabels = test.map(point => (trainedModel.predict(point.features), point.label))
     //get evaluation metrics.
-    val metrics = new MulticlassMetrics(scoreAndLabels)
+    val metrics = new MulticlassMetrics(predictionAndLabels)
     val precision = metrics.precision
     val recall = metrics.recall
-    val accuracy = 1.0 * scoreAndLabels.filter(x => x._1 == x._2).count() / test.count()
+    val accuracy = 1.0 * predictionAndLabels.filter(x => x._1 == x._2).count() / test.count()
     val fmeasure = metrics.fMeasure
     val values = Map("precision" -> precision, "recall" -> recall, "accuracy" -> accuracy, "fmeasure" -> fmeasure)
     values
   }
+
 }

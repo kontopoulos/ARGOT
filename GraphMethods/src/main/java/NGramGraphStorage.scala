@@ -44,11 +44,11 @@ class NGramGraphStorage(val sc: SparkContext) extends GraphStorage {
       val idx = p.index
       //The second argument is true to avoid rdd reshuffling
       val partRdd = g.vertices.distinct
-        .mapPartitionsWithIndex((index: Int, it: Iterator[(Long, String)]) => if(index == idx) it else Iterator(), true )
+        .mapPartitionsWithIndex((index: Int, it: Iterator[(Long, String)]) => if (index == idx) it else Iterator(), true )
       //partRdd contains all values from a single partition
       partRdd.collect.foreach{ v =>
         try {
-          vw.write(v._1 + "<>" + v._2.replaceAll("\n", " ") + "\n")
+          vw.write(v._1 + "<>" + v._2 + "\n")
         }
         catch {
           case ex: Exception => {
@@ -87,7 +87,7 @@ class NGramGraphStorage(val sc: SparkContext) extends GraphStorage {
   }
 
   /**
-   * Save graph to dot format file
+   * Saves graph to dot format file
    * @param g graph to save
    */
   def saveGraphToDotFormat(g: Graph[String, Double]) = {
