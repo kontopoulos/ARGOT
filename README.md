@@ -30,7 +30,7 @@ val ii = new InverseIntersectOperator
 val resultGraph = ii.getResult(ngg1, ngg2)  
 - Delta Operator between two graphs  
 val do = new DeltaOperator  
-val g4 = do.getResult(ngg1, ngg2)  
+val resultGraph = do.getResult(ngg1, ngg2)  
 - Extract Similarities between two graphs  
 val gsc = new GraphSimilarityCalculator  
 val gs = gsc.getSimilarity(ngg1, ngg2)  
