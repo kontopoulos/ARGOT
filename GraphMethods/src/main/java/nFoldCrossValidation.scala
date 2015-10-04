@@ -101,11 +101,11 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
   private def naiveBayesFoldValidation(currentFold: Int, ens1 : List[StringEntity], ens2 : List[StringEntity]): Map[String, Double] = {
     println("Separating training and testing datasets...")
     //get training and testing datasets from first category
-    val testing1 = ens1.slice(currentFold, currentFold+ens1.size*numFold/100)
-    val training1 = ens1.slice(0, currentFold) ++ ens1.slice(currentFold+ens1.size*numFold/100, ens1.size)
+    val testing1 = ens1.slice(currentFold, currentFold+ens1.size/numFold)
+    val training1 = ens1.slice(0, currentFold) ++ ens1.slice(currentFold+ens1.size/numFold, ens1.size)
     //get training and testing datasets from second category
-    val testing2 = ens2.slice(currentFold, currentFold+ens2.size*numFold/100)
-    val training2 = ens2.slice(0, currentFold) ++ ens2.slice(currentFold+ens2.size*numFold/100, ens2.size)
+    val testing2 = ens2.slice(currentFold, currentFold+ens2.size/numFold)
+    val training2 = ens2.slice(0, currentFold) ++ ens2.slice(currentFold+ens2.size/numFold, ens2.size)
     println("Separation complete.")
     println("Preparing operations...")
     val nggc = new NGramGraphCreator(sc, 3, 3)
@@ -227,11 +227,11 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
   private def svmFoldValidation(currentFold: Int, ens1 : List[StringEntity], ens2 : List[StringEntity]): Map[String, Double] = {
     println("Separating training and testing datasets...")
     //get training and testing datasets from first category
-    val testing1 = ens1.slice(currentFold, currentFold+ens1.size*numFold/100)
-    val training1 = ens1.slice(0, currentFold) ++ ens1.slice(currentFold+ens1.size*numFold/100, ens1.size)
+    val testing1 = ens1.slice(currentFold, currentFold+ens1.size/numFold)
+    val training1 = ens1.slice(0, currentFold) ++ ens1.slice(currentFold+ens1.size/numFold, ens1.size)
     //get training and testing datasets from second category
-    val testing2 = ens2.slice(currentFold, currentFold+ens2.size*numFold/100)
-    val training2 = ens2.slice(0, currentFold) ++ ens2.slice(currentFold+ens2.size*numFold/100, ens2.size)
+    val testing2 = ens2.slice(currentFold, currentFold+ens2.size/numFold)
+    val training2 = ens2.slice(0, currentFold) ++ ens2.slice(currentFold+ens2.size/numFold, ens2.size)
     println("Separation complete.")
     println("Preparing operations...")
     val nggc = new NGramGraphCreator(sc, 3, 3)
@@ -355,14 +355,14 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
   private def simpleFoldValidation(currentFold: Int, ens1 : List[StringEntity], ens2 : List[StringEntity], ens3 : List[StringEntity]): Map[String, Double] = {
     println("Separating training and testing datasets...")
     //get training and testing datasets from first category
-    val testing1 = ens1.slice(currentFold, currentFold+ens1.size*numFold/100)
-    val training1 = ens1.slice(0, currentFold) ++ ens1.slice(currentFold+ens1.size*numFold/100, ens1.size)
+    val testing1 = ens1.slice(currentFold, currentFold+ens1.size/numFold)
+    val training1 = ens1.slice(0, currentFold) ++ ens1.slice(currentFold+ens1.size/numFold, ens1.size)
     //get training and testing datasets from second category
-    val testing2 = ens2.slice(currentFold, currentFold+ens2.size*numFold/100)
-    val training2 = ens2.slice(0, currentFold) ++ ens2.slice(currentFold+ens2.size*numFold/100, ens2.size)
+    val testing2 = ens2.slice(currentFold, currentFold+ens2.size/numFold)
+    val training2 = ens2.slice(0, currentFold) ++ ens2.slice(currentFold+ens2.size/numFold, ens2.size)
     //get training and testing datasets from third category
-    val testing3 = ens3.slice(currentFold, currentFold+ens3.size*numFold/100)
-    val training3 = ens3.slice(0, currentFold) ++ ens3.slice(currentFold+ens3.size*numFold/100, ens3.size)
+    val testing3 = ens3.slice(currentFold, currentFold+ens3.size/numFold)
+    val training3 = ens3.slice(0, currentFold) ++ ens3.slice(currentFold+ens3.size/numFold, ens3.size)
     println("Separation complete.")
     println("Training...")
     //start training upon datasets

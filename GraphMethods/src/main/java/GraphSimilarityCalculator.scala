@@ -50,7 +50,8 @@ class GraphSimilarityCalculator extends SimilarityCalculator with Serializable {
     def edgeToPair (e: Edge[Double]) = ((e.srcId, e.dstId), e.attr)
     val pairs1 = g1.edges.map(edgeToPair)
     val pairs2 = g2.edges.map(edgeToPair)
-    val commonEdges = pairs1.join(pairs2).cache
+    val commonEdges = pairs1.join(pairs2)
+    commonEdges.cache
     //minimum edge weight of the common edges
     val minEdgeWeight = commonEdges.map(e => Math.min(e._2._1, e._2._2)).min
     //maximum edge weight of the common edges
