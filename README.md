@@ -9,7 +9,7 @@
 - jdk 1.7  
 
 #Examples of Basic Use
-//ideally number of partitions should be equal to the number of physical cores of your cluster
+//ideally number of partitions should be equal to the number of physical cores of your cluster  
 val numPartitions = 4
 - Create n-gram graph from string  
 val e = new StringEntity  
