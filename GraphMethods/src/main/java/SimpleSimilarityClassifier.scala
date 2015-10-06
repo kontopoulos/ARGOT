@@ -45,7 +45,7 @@ class SimpleSimilarityClassifier(val sc: SparkContext, val numPartitions: Int) e
     val e = new StringEntity
     e.readDataStringFromFile(f)
     val testGraph = nggc.getGraph(e)
-    val gsc = new GraphSimilarityCalculator(numPartitions)
+    val gsc = new GraphSimilarityCalculator
     //taking into account the sum of value, normalized value and containment similarities in every case
     //test with first class
     val gs1 = gsc.getSimilarity(testGraph, graphs(0))

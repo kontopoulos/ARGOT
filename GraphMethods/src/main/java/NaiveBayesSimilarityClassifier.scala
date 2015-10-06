@@ -23,7 +23,7 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext, val numPartitions: In
     var labelsAndFeatures = Array.empty[LabeledPoint]
     //create proper instances for graph creation and similarity calculation
     val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
-    val gsc = new GraphSimilarityCalculator(numPartitions)
+    val gsc = new GraphSimilarityCalculator
     //create labeled points from first category
     files(0).foreach{ f =>
       val e = new StringEntity
@@ -63,7 +63,7 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext, val numPartitions: In
     var labelsAndFeatures = Array.empty[LabeledPoint]
     //create proper instances for graph creation and similarity calculation
     val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
-    val gsc = new GraphSimilarityCalculator(numPartitions)
+    val gsc = new GraphSimilarityCalculator
     //create labeled points from first category
     files(0).foreach{ f =>
       val e = new StringEntity

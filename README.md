@@ -34,7 +34,7 @@ val resultGraph = ii.getResult(ngg1, ngg2)
 val do = new DeltaOperator(numPartitions)  
 val resultGraph = do.getResult(ngg1, ngg2)  
 - Extract Similarities between two graphs  
-val gsc = new GraphSimilarityCalculator(numPartitions)  
+val gsc = new GraphSimilarityCalculator  
 val gs = gsc.getSimilarity(ngg1, ngg2)  
 gs.getOverallSimilarity  
 gs.getSimilarityComponents("size")  
