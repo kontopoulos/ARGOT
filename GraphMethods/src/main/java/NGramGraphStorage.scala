@@ -93,6 +93,7 @@ class NGramGraphStorage(val sc: SparkContext) extends GraphStorage {
   def saveGraphToDotFormat(g: Graph[String, Double]) = {
     val w = new FileWriter("nGramGraph.dot")
     try {
+      g.vertices.cache
       w.write("digraph nGramGraph {\n")
       val edgeParts = g.edges.distinct.partitions
       for (p <- edgeParts) {
@@ -102,10 +103,11 @@ class NGramGraphStorage(val sc: SparkContext) extends GraphStorage {
           .mapPartitionsWithIndex((index: Int, it: Iterator[Edge[Double]]) => if(index == idx) it else Iterator(), true )
         //partRdd contains all values from a single partition
         partRdd.collect.foreach{ e =>
-          w.write("\t" + g.vertices.filter{ v => v._1 == e.srcId}.first._2 + " -> " + g.vertices.filter{ v => v._1 == e.dstId}.first._2 + " [label=\"" + e.srcId + "" + e.dstId + "\" weight=" + e.attr + "];\n")
+          w.write("\t" + g.vertices.filter{ v => v._1 == e.srcId}.first._2.replaceAll("[ !@#$%^&*()_+-={}|,.<>/?:;']", "_") + " -> " + g.vertices.filter{ v => v._1 == e.dstId}.first._2.replaceAll("[ !@#$%^&*()_+-={}|,.<>/?:;']", "_") + " [label=\"" + e.srcId + "" + e.dstId + "\" weight=" + e.attr + "];\n")
         }
       }
       w.write("}")
+      g.vertices.unpersist()
     }
     catch {
       case ex: Exception => {
