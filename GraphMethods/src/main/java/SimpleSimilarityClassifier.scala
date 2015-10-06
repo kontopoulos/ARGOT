@@ -4,7 +4,7 @@ import org.apache.spark.graphx.Graph
 /**
  * @author Kontopoulos Ioannis
  */
-class SimpleSimilarityClassifier(val sc: SparkContext) extends CustomClassifier {
+class SimpleSimilarityClassifier(val sc: SparkContext, val numPartitions: Int) extends CustomClassifier {
 
   /**
    * Train the system based on a dataset
@@ -12,8 +12,8 @@ class SimpleSimilarityClassifier(val sc: SparkContext) extends CustomClassifier 
    * @return class graph
    */
   override def train(trainset: Array[String]): Graph[String, Double] = {
-    val nggc = new NGramGraphCreator(sc, 3, 3)
-    val m = new MergeOperator(0.5)
+    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val m = new MergeOperator(numPartitions, 0.5)
     val e1 = new StringEntity
     e1.readDataStringFromFile(trainset(0))
     val g1 = nggc.getGraph(e1)
@@ -41,11 +41,11 @@ class SimpleSimilarityClassifier(val sc: SparkContext) extends CustomClassifier 
    * @return list of labels
    */
   override def test(f: String, graphs: List[Graph[String, Double]]): List[String] = {
-    val nggc = new NGramGraphCreator(sc, 3, 3)
+    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
     val e = new StringEntity
     e.readDataStringFromFile(f)
     val testGraph = nggc.getGraph(e)
-    val gsc = new GraphSimilarityCalculator
+    val gsc = new GraphSimilarityCalculator(numPartitions)
     //taking into account the sum of value, normalized value and containment similarities in every case
     //test with first class
     val gs1 = gsc.getSimilarity(testGraph, graphs(0))

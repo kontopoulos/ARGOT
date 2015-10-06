@@ -1,9 +1,10 @@
+import org.apache.spark.HashPartitioner
 import org.apache.spark.graphx.{Edge, Graph}
 
 /**
  * @author Kontopoulos Ioannis
  */
-class InverseIntersectOperator extends BinaryGraphOperator with Serializable {
+class InverseIntersectOperator(val numPartitions: Int) extends BinaryGraphOperator with Serializable {
 
   /**
    * Creates a graph that contains the uncommon edges, the edges could be from any graph
@@ -25,8 +26,8 @@ class InverseIntersectOperator extends BinaryGraphOperator with Serializable {
     val emptyEdges2 = pairs2.subtract(pairs1)
       .map{ case (srcId, dstId) => ((srcId, dstId),  0.0) }
     //get edges with their attributes
-    val valuedRDD1 = g1.edges.map(edgeAttrToPair)
-    val valuedRDD2 = g2.edges.map(edgeAttrToPair)
+    val valuedRDD1 = g1.edges.map(edgeAttrToPair).partitionBy(new HashPartitioner(numPartitions))
+    val valuedRDD2 = g2.edges.map(edgeAttrToPair).partitionBy(new HashPartitioner(numPartitions))
     //get the common edges between them
     val edges1 = valuedRDD1.join(emptyEdges1)
       .map{ case ((srcId, dstId), (value1, value2)) => Edge(srcId, dstId, value1) }

@@ -4,7 +4,7 @@ import org.apache.spark.graphx.Graph
 /**
  * @author Kontopoulos Ioannis
  */
-class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Experiment {
+class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val numFold: Int) extends Experiment {
 
   /**
    * Runs the n-fold cross validation
@@ -85,8 +85,8 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     val training2 = files2.slice(0, currentFold) ++ files2.slice(currentFold+files2.size/numFold, files2.size)
     println("Separation complete.")
     println("Creating merging lineage...")
-    val nggc = new NGramGraphCreator(sc, 3, 3)
-    val m = new MergeOperator(0.5)
+    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val m = new MergeOperator(numPartitions, 0.5)
     //merge graphs from first training set to a class graph
     val e1 = new StringEntity
     e1.readDataStringFromFile(training1(0))
@@ -129,7 +129,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     println("Lineage complete.")
     //start training
     println("Creating feature vectors...")
-    val cls = new SVMwithSGDSimilarityClassifier(sc)
+    val cls = new SVMwithSGDSimilarityClassifier(sc, numPartitions)
     val model = cls.train(List(classGraph1, classGraph2), training1, training2)
     //start testing
     println("Testing...")
@@ -208,8 +208,8 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     val training2 = files2.slice(0, currentFold) ++ files2.slice(currentFold+files2.size/numFold, files2.size)
     println("Separation complete.")
     println("Creating merging lineage...")
-    val nggc = new NGramGraphCreator(sc, 3, 3)
-    val m = new MergeOperator(0.5)
+    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val m = new MergeOperator(numPartitions, 0.5)
     //merge graphs from first training set to a class graph
     val e1 = new StringEntity
     e1.readDataStringFromFile(training1(0))
@@ -252,7 +252,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     println("Lineage complete.")
     //start training
     println("Creating feature vectors...")
-    val cls = new NaiveBayesSimilarityClassifier(sc)
+    val cls = new NaiveBayesSimilarityClassifier(sc, numPartitions)
     val model = cls.train(List(classGraph1, classGraph2), training1, training2)
     //start testing
     println("Testing...")
@@ -329,7 +329,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numFold: Int) extends Exper
     println("Separation complete.")
     println("Creating merging lineage...")
     //start training upon datasets
-    val cls = new SimpleSimilarityClassifier(sc)
+    val cls = new SimpleSimilarityClassifier(sc, numPartitions)
     val g01 = cls.train(training1)
     val g02 = cls.train(training2)
     println("Lineage complete.")

@@ -7,7 +7,7 @@ import org.apache.spark.rdd.RDD
 /**
  * @author Kontopoulos Ioannis
  */
-class NGramGraphStorage(val sc: SparkContext) extends GraphStorage {
+class NGramGraphStorage(val sc: SparkContext, val numPartitions: Int) extends GraphStorage {
 
   /**
    * Save vertices ans edges of graph to files
@@ -72,12 +72,12 @@ class NGramGraphStorage(val sc: SparkContext) extends GraphStorage {
     //path for edges file
     val edgeFile = label + "Edges.txt"
     //create EdgeRDD from file rows
-    val edges: RDD[Edge[Double]] = sc.textFile(edgeFile).map{ line =>
+    val edges: RDD[Edge[Double]] = sc.textFile(edgeFile, numPartitions).map{ line =>
       val row = line.split("<>")
       Edge(row(0).toLong, row(1).toLong, row(2).toDouble)
     }
     //create VertexRDD from file rows
-    val vertices: RDD[(Long, String)] = sc.textFile(vertexFile).map{ line =>
+    val vertices: RDD[(Long, String)] = sc.textFile(vertexFile, numPartitions).map{ line =>
       val row = line.split("<>")
       (row(0).toLong, row(1))
     }

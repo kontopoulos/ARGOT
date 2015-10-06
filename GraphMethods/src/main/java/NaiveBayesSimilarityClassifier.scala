@@ -9,7 +9,7 @@ import org.apache.spark.mllib.regression.LabeledPoint
  * Naive Bayes Classifier
  * @author Kontopoulos Ioannis
  */
-class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifier {
+class NaiveBayesSimilarityClassifier(val sc: SparkContext, val numPartitions: Int) extends ModelClassifier {
 
   /**
    * Creates Naive Bayes Model based on labeled points from training sets
@@ -22,8 +22,8 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
     //labelsAndFeatures holds the labeled points for the training model
     var labelsAndFeatures = Array.empty[LabeledPoint]
     //create proper instances for graph creation and similarity calculation
-    val nggc = new NGramGraphCreator(sc, 3, 3)
-    val gsc = new GraphSimilarityCalculator
+    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val gsc = new GraphSimilarityCalculator(numPartitions)
     //create labeled points from first category
     files(0).foreach{ f =>
       val e = new StringEntity
@@ -44,7 +44,7 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       //vector space consists of value, containment and normalized value similarity
       labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(1.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
-    val parallelLabeledPoints = sc.parallelize(labelsAndFeatures)
+    val parallelLabeledPoints = sc.parallelize(labelsAndFeatures, numPartitions)
     //run training algorithm to build the model
     val model = NaiveBayes.train(parallelLabeledPoints)
     model
@@ -62,8 +62,8 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
     //labelsAndFeatures holds the labeled points from the testing set
     var labelsAndFeatures = Array.empty[LabeledPoint]
     //create proper instances for graph creation and similarity calculation
-    val nggc = new NGramGraphCreator(sc, 3, 3)
-    val gsc = new GraphSimilarityCalculator
+    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val gsc = new GraphSimilarityCalculator(numPartitions)
     //create labeled points from first category
     files(0).foreach{ f =>
       val e = new StringEntity
@@ -84,7 +84,7 @@ class NaiveBayesSimilarityClassifier(val sc: SparkContext) extends ModelClassifi
       //vector space consists of value, containment and normalized value similarity
       labelsAndFeatures = labelsAndFeatures ++ Array(LabeledPoint(1.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
-    val test = sc.parallelize(labelsAndFeatures)
+    val test = sc.parallelize(labelsAndFeatures, numPartitions)
     //compute raw scores on the test set.
     val predictionAndLabels = test.map(point => (trainedModel.predict(point.features), point.label))
     //get evaluation metrics.

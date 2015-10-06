@@ -1,9 +1,10 @@
+import org.apache.spark.HashPartitioner
 import org.apache.spark.graphx.{Edge, Graph}
 
 /**
  * @author Kontopoulos Ioannis
  */
-class DeltaOperator extends BinaryGraphOperator with Serializable {
+class DeltaOperator(val numPartitions: Int) extends BinaryGraphOperator with Serializable {
 
   /**
    * Creates a graph that contains edges from the first graph that do not exist in the second graph
@@ -22,7 +23,7 @@ class DeltaOperator extends BinaryGraphOperator with Serializable {
     val emptyEdges = pairs1.subtract(pairs2)
       .map{ case (srcId, dstId) => ((srcId, dstId),  0.0) }
     //get edges with their attributes
-    val RDDWithValues = g1.edges.map(edgeAttrToPair)
+    val RDDWithValues = g1.edges.map(edgeAttrToPair).partitionBy(new HashPartitioner(numPartitions))
     //get the common edges between them
     val edges = RDDWithValues.join(emptyEdges)
       .map{ case ((srcId, dstId), (value1, value2)) => Edge(srcId, dstId, value1) }

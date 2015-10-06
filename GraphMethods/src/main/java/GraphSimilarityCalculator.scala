@@ -1,9 +1,10 @@
+import org.apache.spark.HashPartitioner
 import org.apache.spark.graphx.{Edge, Graph}
 
 /**
  * @author Kontopoulos Ioannis
  */
-class GraphSimilarityCalculator extends SimilarityCalculator with Serializable {
+class GraphSimilarityCalculator(val numPartitions: Int) extends SimilarityCalculator with Serializable {
 
   /**
    * Gets the similarity between two graphs
@@ -12,13 +13,7 @@ class GraphSimilarityCalculator extends SimilarityCalculator with Serializable {
    * @return Similarity
    */
   override def getSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Similarity = {
-    //store distinct edges after materializing for future use
-    g1.edges.distinct.cache
-    g2.edges.distinct.cache
     val gs = new GraphSimilarity(calculateSizeSimilarity(g1, g2), calculateValueSimilarity(g1, g2), calculateContainmentSimilarity(g1, g2))
-    //free memory of stored edges
-    g1.edges.distinct.unpersist()
-    g2.edges.distinct.unpersist()
     gs
   }
 
@@ -48,7 +43,7 @@ class GraphSimilarityCalculator extends SimilarityCalculator with Serializable {
     val g2EdgeCount = g2.edges.distinct.count
     //pair edges so the common edges are the ones with same vertices pair
     def edgeToPair (e: Edge[Double]) = ((e.srcId, e.dstId), e.attr)
-    val pairs1 = g1.edges.map(edgeToPair)
+    val pairs1 = g1.edges.map(edgeToPair).partitionBy(new HashPartitioner(numPartitions))
     val pairs2 = g2.edges.map(edgeToPair)
     val commonEdges = pairs1.join(pairs2)
     commonEdges.cache

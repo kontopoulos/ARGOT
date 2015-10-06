@@ -1,10 +1,11 @@
+import org.apache.spark.HashPartitioner
 import org.apache.spark.graphx.{Edge, Graph}
 
 /**
  * @author Kontopoulos Ioannis
  * @param l the learning factor
  */
-class MergeOperator(val l: Double) extends BinaryGraphOperator with Serializable {
+class MergeOperator(val numPartitions: Int, val l: Double) extends BinaryGraphOperator with Serializable {
 
   /**
    * Merges two graphs
@@ -15,7 +16,7 @@ class MergeOperator(val l: Double) extends BinaryGraphOperator with Serializable
   def getResult(g1: Graph[String, Double], g2: Graph[String, Double]): Graph[String, Double] = {
     //pair edges so the common edges are the ones with same vertices pair
     def edgeToPair (e: Edge[Double]) = ((e.srcId, e.dstId), e.attr)
-    val pairs1 = g1.edges.map(edgeToPair)
+    val pairs1 = g1.edges.map(edgeToPair).partitionBy(new HashPartitioner(numPartitions))
     val pairs2 = g2.edges.map(edgeToPair)
     //combine edges
     val newEdges = pairs1.union(pairs2)

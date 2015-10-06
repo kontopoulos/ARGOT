@@ -5,7 +5,7 @@ import org.apache.spark.rdd.RDD
 /**
  * @author Kontopoulos Ioannis
  */
-class NGramGraphCreator(val sc: SparkContext, val ngram: Int, val dwin: Int) extends GraphCreator {
+class NGramGraphCreator(val sc: SparkContext, val numPartitions: Int, val ngram: Int, val dwin: Int) extends GraphCreator {
 
   /**
    * Creates a graph based on ngram, dwin and entity
@@ -36,9 +36,9 @@ class NGramGraphCreator(val sc: SparkContext, val ngram: Int, val dwin: Int) ext
       }
     }
     //create vertex RDD from vertices array
-    val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices)
+    val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices, numPartitions)
     //create edge RDD from edges array
-    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges)
+    val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges, numPartitions)
     //create graph from vertices and edges arrays, erase duplicate edges and increase occurence
     val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD).partitionBy(PartitionStrategy.EdgePartition2D).groupEdges( (a, b) => a + b )
     //return graph
