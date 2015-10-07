@@ -99,8 +99,11 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
       val e = new StringEntity
       e.readDataStringFromFile(training1(i))
       val g = nggc.getGraph(e)
-      if (i % 10 == 0) {
-        //every 10 iterations cut the lineage, due to long iteration
+      if (i % 30 == 0) {
+        //materialize and store for future use
+        classGraph1.edges.distinct.cache
+        classGraph1.edges.distinct.count
+        //every 30 iterations cut the lineage, due to long iteration
         classGraph1 = Graph(classGraph1.vertices.distinct, classGraph1.edges.distinct)
       }
       classGraph1 = m.getResult(classGraph1, g)
@@ -117,8 +120,11 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
       val e = new StringEntity
       e.readDataStringFromFile(training2(i))
       val g = nggc.getGraph(e)
-      if (i % 10 == 0) {
-        //every 10 iterations cut the lineage, due to long iteration
+      if (i % 30 == 0) {
+        //materialize and store for future use
+        classGraph2.edges.distinct.cache
+        classGraph2.edges.distinct.count
+        //every 30 iterations cut the lineage, due to long iteration
         classGraph2 = Graph(classGraph2.vertices.distinct, classGraph2.edges.distinct)
       }
       classGraph2 = m.getResult(classGraph2, g)
@@ -222,8 +228,11 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
       val e = new StringEntity
       e.readDataStringFromFile(training1(i))
       val g = nggc.getGraph(e)
-      if (i % 10 == 0) {
-        //every 10 iterations cut the lineage, due to long iteration
+      if (i % 30 == 0) {
+        //materialize and store for future use
+        classGraph1.edges.distinct.cache
+        classGraph1.edges.distinct.count
+        //every 30 iterations cut the lineage, due to long iteration
         classGraph1 = Graph(classGraph1.vertices.distinct, classGraph1.edges.distinct)
       }
       classGraph1 = m.getResult(classGraph1, g)
@@ -240,8 +249,11 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
       val e = new StringEntity
       e.readDataStringFromFile(training2(i))
       val g = nggc.getGraph(e)
-      if (i % 10 == 0) {
-        //every 10 iterations cut the lineage, due to long iteration
+      if (i % 30 == 0) {
+        //materialize and store for future use
+        classGraph2.edges.distinct.cache
+        classGraph2.edges.distinct.count
+        //every 30 iterations cut the lineage, due to long iteration
         classGraph2 = Graph(classGraph2.vertices.distinct, classGraph2.edges.distinct)
       }
       classGraph2 = m.getResult(classGraph2, g)
@@ -279,6 +291,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     var precision = 0.0
     var recall = 0.0
     var accuracy = 0.0
+    var fmeasure = 0.0
     var preList: List[Double] = Nil
     for (j <- 0 to numFold-1) {
       val metrics = simpleFoldValidation(j, files1, files2)
@@ -286,11 +299,12 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
       precision += metrics("precision")
       recall += metrics("recall")
       accuracy += metrics("accuracy")
+      fmeasure += metrics("fmeasure")
     }
     precision = precision/numFold
     recall = recall/numFold
     accuracy = accuracy/numFold
-    val fmeasure = 2*(precision*recall)/(precision + recall)
+    fmeasure = fmeasure/numFold
     //calculate standard deviation
     var sum = 0.0
     preList.foreach{ p =>
@@ -412,11 +426,12 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     val precision = (precision1 + precision2)/2
     val recall = (recall1 + recall2)/2
     val accuracy = (accuracy1 + accuracy2)/2
+    val fmeasure = 2*(precision*recall)/(precision + recall)
     println("Testing complete.")
     println("===================================")
     println("Fold Completed = " + (currentFold + 1))
     println("===================================")
-    val metrics = Map("precision" -> precision, "recall" -> recall, "accuracy" -> accuracy)
+    val metrics = Map("precision" -> precision, "recall" -> recall, "accuracy" -> accuracy, "fmeasure" -> fmeasure)
     metrics
   }
 

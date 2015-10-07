@@ -25,8 +25,11 @@ class SimpleSimilarityClassifier(val sc: SparkContext, val numPartitions: Int) e
       val e = new StringEntity
       e.readDataStringFromFile(trainset(i))
       val g = nggc.getGraph(e)
-      if (i % 10 == 0) {
-        //every 10 iterations cut the lineage, due to long iteration
+      if (i % 30 == 0) {
+        //materialize and store for future use
+        merged.edges.distinct.cache
+        merged.edges.distinct.count
+        //every 30 iterations cut the lineage, due to long iteration
         merged = Graph(merged.vertices.distinct, merged.edges.distinct)
       }
       merged = m.getResult(merged, g)
