@@ -13,7 +13,7 @@ class SimpleSimilarityClassifier(val sc: SparkContext, val numPartitions: Int) e
    */
   override def train(trainset: Array[String]): Graph[String, Double] = {
     val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
-    val m = new MergeOperator(numPartitions, 0.5)
+    val m = new MergeOperator(0.5)
     val e1 = new StringEntity
     e1.readDataStringFromFile(trainset(0))
     val g1 = nggc.getGraph(e1)

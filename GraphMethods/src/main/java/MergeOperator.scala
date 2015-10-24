@@ -1,11 +1,10 @@
-import org.apache.spark.HashPartitioner
-import org.apache.spark.graphx.{Edge, Graph}
+import org.apache.spark.graphx.{PartitionStrategy, Graph}
 
 /**
  * @author Kontopoulos Ioannis
  * @param l the learning factor
  */
-class MergeOperator(val numPartitions: Int, val l: Double) extends BinaryGraphOperator with Serializable {
+class MergeOperator(val l: Double) extends BinaryGraphOperator with Serializable {
 
   /**
    * Merges two graphs
@@ -14,21 +13,13 @@ class MergeOperator(val numPartitions: Int, val l: Double) extends BinaryGraphOp
    * @return merged graph
    */
   def getResult(g1: Graph[String, Double], g2: Graph[String, Double]): Graph[String, Double] = {
-    //pair edges so the common edges are the ones with same vertices pair
-    def edgeToPair (e: Edge[Double]) = ((e.srcId, e.dstId), e.attr)
-    val pairs1 = g1.edges.map(edgeToPair).partitionBy(new HashPartitioner(numPartitions))
-    val pairs2 = g2.edges.map(edgeToPair)
-    //combine edges
-    val newEdges = pairs1.union(pairs2)
-      .aggregateByKey((0.0, 0.0))(
-        (acc, e) => (acc._1 + e, acc._2 + 1.0),
-        (acc1, acc2) => (averageValues(acc1._1, acc2._1), averageValues(acc1._2, acc2._2))
-      ).map{case ((srcId, dstId), (acc, count)) => Edge(srcId, dstId, acc)}
-    //combine vertices assuming there are no conflicts like different labels
-    val newVertices = g1.vertices.union(g2.vertices).distinct
-    //create new graph
-    val mergedGraph = Graph(newVertices, newEdges)
-    mergedGraph
+    //combine vertices and edges
+    val merged = Graph(g1.vertices.union(g2.vertices).distinct, g1.edges.union(g2.edges).distinct)
+      //repartition so we can group edges per partition
+      .partitionBy(PartitionStrategy.EdgePartition2D)
+      //apply the averaging function on edges
+      .groupEdges((val1, val2) => averageValues(val1, val2))
+    merged
   }
 
   /**

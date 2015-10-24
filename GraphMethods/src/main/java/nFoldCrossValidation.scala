@@ -29,40 +29,32 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     val files1 = new java.io.File("C01/").listFiles.map( f => f.getAbsolutePath).toList.toArray
     val files2 = new java.io.File("C02/").listFiles.map( f => f.getAbsolutePath).toList.toArray
     println("Reading complete.")
-    var preList: List[Double] = Nil
-    var precision = 0.0
-    var recall = 0.0
-    var accuracy = 0.0
-    var fmeasure = 0.0
+    var prList: List[Double] = Nil
+    var pr = 0.0
+    var roc = 0.0
     for (j <- 0 to numFold-1) {
       val metrics = svmFoldValidation(j, files1, files2)
-      precision += metrics("precision")
-      preList :::= List(metrics("precision"))
-      recall += metrics("recall")
-      accuracy += metrics("accuracy")
-      fmeasure += metrics("fmeasure")
+      pr += metrics("pr")
+      prList :::= List(metrics("pr"))
+      roc += metrics("roc")
     }
     //calculate averaged metrics
-    precision = precision/numFold
-    recall = recall/numFold
-    accuracy = accuracy/numFold
-    fmeasure = fmeasure/numFold
+    pr = pr/numFold
+    roc = roc/numFold
     //calculate standard deviation
     var sum = 0.0
-    preList.foreach{ p =>
-      sum += Math.pow((p-precision), 2)
+    prList.foreach{ p =>
+      sum += Math.pow((p-pr), 2)
     }
     sum = sum/numFold
     val stdev = Math.sqrt(sum)
     //calculate standard error
     val sterr = stdev/(Math.sqrt(numFold))
     println("===================================")
-    println("Precision = " + precision)
-    println("Recall = " + recall)
-    println("Accuracy = " + accuracy)
-    println("F-measure = " + fmeasure)
-    println("Standard Deviation of Precision = " + stdev)
-    println("Standard Error of Precision = " + sterr)
+    println("Area Under PR = " + pr)
+    println("Area Under ROC = " + roc)
+    println("Standard Deviation = " + stdev)
+    println("Standard Error = " + sterr)
     println("===================================")
   }
 
@@ -86,7 +78,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     println("Separation complete.")
     println("Creating merging lineage...")
     val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
-    val m = new MergeOperator(numPartitions, 0.5)
+    val m = new MergeOperator(0.5)
     //merge graphs from first training set to a class graph
     val e1 = new StringEntity
     e1.readDataStringFromFile(training1(0))
@@ -159,40 +151,32 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     val files1 = new java.io.File("C01/").listFiles.map( f => f.getAbsolutePath).toList.toArray
     val files2 = new java.io.File("C02/").listFiles.map( f => f.getAbsolutePath).toList.toArray
     println("Reading complete.")
-    var preList: List[Double] = Nil
-    var precision = 0.0
-    var recall = 0.0
-    var accuracy = 0.0
-    var fmeasure = 0.0
+    var prList: List[Double] = Nil
+    var pr = 0.0
+    var roc = 0.0
     for (j <- 0 to numFold-1) {
       val metrics = naiveBayesFoldValidation(j, files1, files2)
-      precision += metrics("precision")
-      preList :::= List(metrics("precision"))
-      recall += metrics("recall")
-      accuracy += metrics("accuracy")
-      fmeasure += metrics("fmeasure")
+      pr += metrics("pr")
+      prList :::= List(metrics("pr"))
+      roc += metrics("roc")
     }
     //calculate averaged metrics
-    precision = precision/numFold
-    recall = recall/numFold
-    accuracy = accuracy/numFold
-    fmeasure = fmeasure/numFold
+    pr = pr/numFold
+    roc = roc/numFold
     //calculate standard deviation
     var sum = 0.0
-    preList.foreach{ p =>
-      sum += Math.pow((p-precision), 2)
+    prList.foreach{ p =>
+      sum += Math.pow((p-pr), 2)
     }
     sum = sum/numFold
     val stdev = Math.sqrt(sum)
     //calculate standard error
     val sterr = stdev/(Math.sqrt(numFold))
     println("===================================")
-    println("Precision = " + precision)
-    println("Recall = " + recall)
-    println("Accuracy = " + accuracy)
-    println("F-measure = " + fmeasure)
-    println("Standard Deviation of Precision = " + stdev)
-    println("Standard Error of Precision = " + sterr)
+    println("Area Under PR = " + pr)
+    println("Area Under ROC = " + roc)
+    println("Standard Deviation = " + stdev)
+    println("Standard Error = " + sterr)
     println("===================================")
   }
 
@@ -215,7 +199,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     println("Separation complete.")
     println("Creating merging lineage...")
     val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
-    val m = new MergeOperator(numPartitions, 0.5)
+    val m = new MergeOperator(0.5)
     //merge graphs from first training set to a class graph
     val e1 = new StringEntity
     e1.readDataStringFromFile(training1(0))
