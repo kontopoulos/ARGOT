@@ -18,7 +18,7 @@ class MergeOperator(val l: Double) extends BinaryGraphOperator with Serializable
       //repartition so we can group edges per partition
       .partitionBy(PartitionStrategy.EdgePartition2D)
       //apply the averaging function on edges
-      .groupEdges((val1, val2) => averageValues(val1, val2))
+      .groupEdges((a, b) => averageValues(a, b))
     merged
   }
 

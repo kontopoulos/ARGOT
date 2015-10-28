@@ -4,7 +4,7 @@ import org.apache.spark.graphx.{Edge, Graph}
 /**
  * @author Kontopoulos Ioannis
  */
-class DeltaOperator(val numPartitions: Int) extends BinaryGraphOperator with Serializable {
+class DeltaOperator extends BinaryGraphOperator with Serializable {
 
   /**
    * Creates a graph that contains edges from the first graph that do not exist in the second graph
@@ -13,6 +13,7 @@ class DeltaOperator(val numPartitions: Int) extends BinaryGraphOperator with Ser
    * @return graph
    */
   override def getResult(g1: Graph[String, Double], g2: Graph[String, Double]): Graph[String, Double] = {
+    val numPartitions = g1.edges.partitions.size
     //pair edges to only the vertices pair
     def edgeToPair (e: Edge[Double]) = ((e.srcId, e.dstId))
     //pair edges so the common edges are the ones with same vertices pair
@@ -26,7 +27,7 @@ class DeltaOperator(val numPartitions: Int) extends BinaryGraphOperator with Ser
     val RDDWithValues = g1.edges.map(edgeAttrToPair).partitionBy(new HashPartitioner(numPartitions))
     //get the common edges between them
     val edges = RDDWithValues.join(emptyEdges)
-      .map{ case ((srcId, dstId), (value1, value2)) => Edge(srcId, dstId, value1) }
+      .map{ case ((srcId, dstId), (a, b)) => Edge(srcId, dstId, a) }
     //create new graph
     val deltaGraph = Graph(g1.vertices.distinct, edges)
     deltaGraph

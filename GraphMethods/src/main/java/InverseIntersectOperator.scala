@@ -4,7 +4,7 @@ import org.apache.spark.graphx.{Edge, Graph}
 /**
  * @author Kontopoulos Ioannis
  */
-class InverseIntersectOperator(val numPartitions: Int) extends BinaryGraphOperator with Serializable {
+class InverseIntersectOperator extends BinaryGraphOperator with Serializable {
 
   /**
    * Creates a graph that contains the uncommon edges, the edges could be from any graph
@@ -13,6 +13,7 @@ class InverseIntersectOperator(val numPartitions: Int) extends BinaryGraphOperat
    * @return graph
    */
   override def getResult(g1: Graph[String, Double], g2: Graph[String, Double]): Graph[String, Double] = {
+    val numPartitions = g1.edges.partitions.size
     //pair edges to only the vertices pair
     def edgeToPair (e: Edge[Double]) = ((e.srcId, e.dstId))
     //pair edges so the common edges are the ones with same vertices pair
@@ -30,9 +31,9 @@ class InverseIntersectOperator(val numPartitions: Int) extends BinaryGraphOperat
     val valuedRDD2 = g2.edges.map(edgeAttrToPair).partitionBy(new HashPartitioner(numPartitions))
     //get the common edges between them
     val edges1 = valuedRDD1.join(emptyEdges1)
-      .map{ case ((srcId, dstId), (value1, value2)) => Edge(srcId, dstId, value1) }
+      .map{ case ((srcId, dstId), (a, b)) => Edge(srcId, dstId, a) }
     val edges2 = valuedRDD2.join(emptyEdges2)
-      .map{ case ((srcId, dstId), (value1, value2)) => Edge(srcId, dstId, value1) }
+      .map{ case ((srcId, dstId), (a, b)) => Edge(srcId, dstId, a) }
     //union edges
     val edges = edges1.union(edges2)
     val inverseGraph = Graph(g1.vertices.union(g2.vertices).distinct, edges)
