@@ -18,11 +18,8 @@ class NGramGraphCreator(val sc: SparkContext, val numPartitions: Int, val ngram:
     val seg = new StringFixedNGramSegmentingFunction(ngram)
     //get the array of entity atoms
     val atoms = seg.getComponents(e).map( en => (en.label.toLong, en.dataStream.toString))
-    //create distinct vertices
-    val vertices = atoms.distinct
     //create edges from vertices
-    //add dummy vertices at the end
-    val edges = (vertices ++ Array.fill(dwin)((-1L, null)))
+    val edges = (atoms ++ Array.fill(dwin)((-1L, null))) //add dummy vertices at the end
       .sliding(dwin + 1) //slide over dwin + 1 vertices at the time
       .flatMap(arr => {
         val (srcId, _) = arr.head //take first
@@ -32,7 +29,7 @@ class NGramGraphCreator(val sc: SparkContext, val numPartitions: Int, val ngram:
         }}.filter(e => e.srcId != -1L & e.dstId != -1L)) //drop dummies
       .toArray
     //create vertex RDD from vertices array
-    val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices, numPartitions)
+    val vertexRDD: RDD[(Long, String)] = sc.parallelize(atoms.distinct, numPartitions)
     //create edge RDD from edges array
     val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges, numPartitions)
     //create graph from vertices and edges arrays, erase duplicate edges and increase occurrence
