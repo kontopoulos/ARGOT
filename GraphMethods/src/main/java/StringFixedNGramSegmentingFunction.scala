@@ -12,10 +12,7 @@ class StringFixedNGramSegmentingFunction(val ngram: Int) extends SegmentingFunct
     val en = e.asInstanceOf[StringEntity]
     //slide by ngram step
     val atoms: Array[Atom] =  en.getPayload.sliding(ngram)
-      //create indexed substrings
-      .zipWithIndex
-      //create String Atoms
-      .map{case (s, i) => new StringAtom(s.hashCode.toString, "_" + s)}
+      .map{s => new StringAtom(s.hashCode.toString, "_" + s)}
       .toArray
     atoms
   }
