@@ -1,5 +1,5 @@
 import org.apache.spark.SparkContext
-import org.apache.spark.graphx.{PartitionStrategy, Edge, Graph}
+import org.apache.spark.graphx.{Edge, PartitionStrategy, Graph}
 import org.apache.spark.rdd.RDD
 
 /**
@@ -16,30 +16,26 @@ class NGramGraphCreator(val sc: SparkContext, val numPartitions: Int, val ngram:
     val en = e.asInstanceOf[StringEntity]
     //segment the entity
     val seg = new StringFixedNGramSegmentingFunction(ngram)
-    //get the list of entity atoms
-    val atoms = seg.getComponents(e)
-    //set the list of atoms of the entity
-    en.setEntityComponents(atoms.map{ case i:StringAtom => i })
+    //get the array of entity atoms
+    val atoms = seg.getComponents(e).map( en => (en.label.toLong, en.dataStream.toString))
     //create distinct vertices
-    val vertices = en.getEntityComponents.map( en => (en.label.toLong, en.dataStream)).toArray.distinct
-    //array that holds the edges
-    var edges = Array.empty[Edge[Double]]
-    //create edges based on symmetric distribution
-    for(j <- 0 to e.getEntityComponents.size - 1) {
-      for(i <- 1 to dwin) {
-        if((j+i) < e.getEntityComponents.size) {
-          //add edge
-          edges = edges ++ Array(Edge(en.getEntityComponents(j).label.toLong, en.getEntityComponents(j+i).label.toLong, 1.0))
-          //add inverse edge
-          edges = edges ++ Array(Edge(en.getEntityComponents(j+i).label.toLong, en.getEntityComponents(j).label.toLong, 1.0))
-        }
-      }
-    }
+    val vertices = atoms.distinct
+    //create edges from vertices
+    //add dummy vertices at the end
+    val edges = (vertices ++ Array.fill(dwin)((-1L, null)))
+      .sliding(dwin + 1) // Slide over n + 1 vertices at the time
+      .flatMap(arr => {
+        val (srcId, _) = arr.head //take first
+        //generate 2n edges
+        arr.tail.flatMap{case (dstId, _) =>
+          Array(Edge(srcId, dstId, 1.0), Edge(dstId, srcId, 1.0))
+        }}.filter(e => e.srcId != -1L & e.dstId != -1L)) //drop dummies
+      .toArray
     //create vertex RDD from vertices array
     val vertexRDD: RDD[(Long, String)] = sc.parallelize(vertices, numPartitions)
     //create edge RDD from edges array
     val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges, numPartitions)
-    //create graph from vertices and edges arrays, erase duplicate edges and increase occurence
+    //create graph from vertices and edges arrays, erase duplicate edges and increase occurrence
     val graph: Graph[String, Double] = Graph(vertexRDD, edgeRDD).partitionBy(PartitionStrategy.EdgePartition2D).groupEdges( (a, b) => a + b )
     //return graph
     graph

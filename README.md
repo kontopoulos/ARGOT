@@ -41,3 +41,5 @@ gs.getSimilarityComponents("size")
 gs.getSimilarityComponents("value")  
 gs.getSimilarityComponents("containment")  
 gs.getSimilarityComponents("normalized")  
+
+For large datasets it is recommended to increase the driver`s memory from spark-env.sh file
