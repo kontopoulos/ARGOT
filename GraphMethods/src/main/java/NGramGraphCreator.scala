@@ -23,7 +23,7 @@ class NGramGraphCreator(val sc: SparkContext, val numPartitions: Int, val ngram:
     //create edges from vertices
     //add dummy vertices at the end
     val edges = (vertices ++ Array.fill(dwin)((-1L, null)))
-      .sliding(dwin + 1) // Slide over n + 1 vertices at the time
+      .sliding(dwin + 1) //slide over dwin + 1 vertices at the time
       .flatMap(arr => {
         val (srcId, _) = arr.head //take first
         //generate 2n edges
