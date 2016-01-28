@@ -4,9 +4,8 @@
 - IntelliJ Project  
 
 #Specifications
-- Apache Spark 1.4.1 with Graphx  
-- scala 2.10.4  
-- jdk 1.7  
+- Apache Spark 1.6.0 with Graphx  
+- scala 2.10.4   
 
 #Examples of Basic Use
 //ideally number of partitions should be equal to the number of physical cores of your cluster  
