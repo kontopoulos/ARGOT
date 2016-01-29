@@ -1,16 +1,14 @@
-import org.apache.spark.SparkContext
-import org.apache.spark.graphx.Graph
 import org.apache.spark.mllib.classification.ClassificationModel
+import org.apache.spark.mllib.regression.LabeledPoint
+import org.apache.spark.rdd.RDD
 
 /**
  * @author Kontopoulos Ioannis
  */
 trait ModelClassifier {
 
-  val sc: SparkContext
+  def train(trainset: RDD[LabeledPoint]): ClassificationModel
 
-  def train(classGraphs: List[Graph[String, Double]], files: Array[String]*): ClassificationModel
-
-  def test(model: ClassificationModel, classGraphs: List[Graph[String, Double]], files: Array[String]*): Map[String, Double]
+  def test(model: ClassificationModel, testset: RDD[LabeledPoint]): Double
 
 }
