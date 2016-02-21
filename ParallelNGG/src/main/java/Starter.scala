@@ -1,5 +1,3 @@
-import java.util.Calendar
-
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
@@ -21,45 +19,15 @@ object Starter {
     Logger.getLogger("akka").setLevel(Level.OFF)
 
 
-    /*val e = new StringEntity
-    e.readFile(sc, "corpora/0000962", 2)
-    val nggc = new WordNGramGraphCreator(sc, 2, 3, 3)
-    val g = nggc.getGraph(e)
-    println(g.numEdges + " " + g.numVertices)
-    g.edges.foreach(println)
-    g.vertices.foreach(println)*/
+    val start = System.currentTimeMillis
 
-
-    /*val e1 = new StringEntity
-    e1.readFile(sc, "corpora/0000493", 2)
-    val e2 = new StringEntity
-    e2.readFile(sc, "corpora/0000962", 2)
-    val nggc = new NGramGraphCreator(sc, 2, 3, 3)
-    val gsc = new GraphSimilarityCalculator
-    val g1 = nggc.getGraph(e1)
-    val g2 = nggc.getGraph(e2)
-    val gs = gsc.getSimilarity(g1, g2)
-    println(gs.getSimilarityComponents("containment") + " " + gs.getSimilarityComponents("value") + " " + gs.getSimilarityComponents("normalized") + " " + gs.getSimilarityComponents("size"))
-*/
-
-    /*val e = new StringEntity
-    e.readStringRDDFromFile(sc, "alum/0000191", 2)
-    val tokenizer = new StringEntityTokenizer
-    tokenizer.getWordNGrams(e, 2).foreach(atom => println(atom.dataStream))*/
-
-    /*val calendar = Calendar.getInstance
-    val now = calendar.getTime
-    println(new java.sql.Timestamp(now.getTime))
-
-
-    val dec = new DocumentEventClustering(sc)
+    /*val dec = new DocumentEventClustering(sc)
     val clusters = dec.getClusters("corpora")
-    dec.saveClustersToCsv(clusters)
+    dec.saveClustersToCsv(clusters)*/
 
 
-    val calendar2 = Calendar.getInstance
-    val now2 = calendar2.getTime
-    println(new java.sql.Timestamp(now2.getTime))*/
+    val end = System.currentTimeMillis
+    println("Duration: " + (end-start).toDouble/1000 + " seconds")
 
   }
 

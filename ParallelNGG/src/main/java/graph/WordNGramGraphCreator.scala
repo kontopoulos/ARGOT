@@ -15,7 +15,8 @@ class WordNGramGraphCreator(val sc: SparkContext, val numPartitions: Int, val ng
   override def getGraph(e: Entity): Graph[String, Double] = {
     val tokenizer = new StringEntityTokenizer
     //create vertices based on ngram size
-    val atoms = tokenizer.getCapWordNGrams(e, ngram).map(a => (a.label, a.dataStream))
+    val atoms = tokenizer.getCapWordNGrams(e, ngram)
+      .map(a => (a.dataStream.toLowerCase.hashCode.toLong, a.dataStream))
     val vertices = atoms.collect
     //create edges from vertices
     val edges = (vertices ++ Array.fill(dwin)((-1L, null))) //add dummy vertices at the end

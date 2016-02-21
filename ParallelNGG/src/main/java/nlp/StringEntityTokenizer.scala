@@ -16,7 +16,7 @@ class StringEntityTokenizer extends EntityTokenizer with Serializable {
       //split each line by spaces
       .flatMap(line => line.split(" "))
       //remove special characters from words
-      .map(word => word.replaceAll("[,.?;<>-]", ""))
+      .map(word => word.replaceAll("[,.?;:<>-]", ""))
       //remove empty strings that might occur from spaces
       .filter(word => word != "")
       //convert to string atoms
