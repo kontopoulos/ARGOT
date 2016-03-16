@@ -21,11 +21,8 @@ class IntersectOperator(val l: Double) extends BinaryGraphOperator with Serializ
     //combine edges
     val newEdges = pairs1.join(pairs2)
       .map{ case ((srcId, dstId), (a, b)) => Edge(srcId, dstId, averageValues(a, b)) }
-    //combine vertices
-    val newVertices = g1.vertices.join(g2.vertices)
-      .map{ case(id, (name1, name2)) => (id, name1) }
     //create new graph
-    val intersectedGraph = Graph(newVertices, newEdges)
+    val intersectedGraph = Graph.fromEdges(newEdges, "intersected")
     intersectedGraph
   }
 

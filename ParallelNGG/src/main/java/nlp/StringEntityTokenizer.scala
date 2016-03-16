@@ -12,7 +12,7 @@ class StringEntityTokenizer extends EntityTokenizer with Serializable {
     */
   override def getTokens(e: Entity): RDD[Atom] = {
     val en = e.asInstanceOf[StringEntity]
-    val tokens: RDD[Atom] = en.dataStringRDD
+    val tokens: RDD[Atom] = en.getPayload
       //split each line by spaces
       .flatMap(line => line.split(" "))
       //remove special characters from words
@@ -37,7 +37,7 @@ class StringEntityTokenizer extends EntityTokenizer with Serializable {
     */
   def getCharacterNGrams(e: Entity, ngram: Int): RDD[Atom] = {
     val en = e.asInstanceOf[StringEntity]
-    en.dataStringRDD.mapPartitions(_.toList.mkString(" ").sliding(ngram))
+    en.getPayload.mapPartitions(_.toList.mkString(" ").sliding(ngram))
       .map(atom => new StringAtom(("_" + atom).hashCode, "_" + atom))
   }
 

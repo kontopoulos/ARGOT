@@ -6,28 +6,10 @@ import org.apache.spark.rdd.RDD
  */
 class StringEntity extends Entity {
 
-  //single string of the entity
-  private var singleString = ""
   //RDD containing the lines of a text file
-  var dataStringRDD: RDD[String] = null
+  private var dataStringRDD: RDD[String] = null
 
-
-  /**
-   * Returns the actual data of the entity
-    *
-    * @return dataString
-   */
-  override def getPayload: String = {
-    this.singleString
-  }
-
-  /**
-    * Sets the value of dataString
-    * @param value of dataString
-    */
-  def setString(value: String) = {
-    this.singleString = value
-  }
+  def getPayload = dataStringRDD
 
   /**
     * Reads dataString from a file, distributed version

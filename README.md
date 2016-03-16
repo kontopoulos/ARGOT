@@ -9,28 +9,23 @@
 
 #Examples of Basic Use
 //ideally number of partitions should be equal to the number of physical cores of your cluster  
-val numPartitions = 4
-- Create n-gram graph from string  
-val e = new StringEntity  
-e.dataString = "Hello World!"  
-val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)  
-val ngg = nggc.getGraph(e)  
+val numPartitions = 4 
 - Create n-gram graph from file  
 val e = new StringEntity  
-e.readDataStringFromFile("file.txt")  
+e.readFile("file.txt")  
 val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)  
 val ngg = nggc.getGraph(e)  
 - Merge two graphs (ngg1, ngg2)  
-val mo = new MergeOperator(numPartitions, 0.5)  
+val mo = new MergeOperator(0.5)  
 val resultGraph = mo.getResult(ngg1, ngg2)  
 - Intersect two graphs  
-val io = new IntersectOperator(numPartitions, 0.5)  
+val io = new IntersectOperator(0.5)  
 val resultGraph = io.getResult(ngg1, ngg2)  
 - Inverse Intersect two graphs  
-val ii = new InverseIntersectOperator(numPartitions)  
+val ii = new InverseIntersectOperator 
 val resultGraph = ii.getResult(ngg1, ngg2)  
 - Delta Operator between two graphs  
-val do = new DeltaOperator(numPartitions)  
+val do = new DeltaOperator 
 val resultGraph = do.getResult(ngg1, ngg2)  
 - Extract Similarities between two graphs  
 val gsc = new GraphSimilarityCalculator  

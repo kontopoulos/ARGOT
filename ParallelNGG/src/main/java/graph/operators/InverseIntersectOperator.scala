@@ -36,7 +36,7 @@ class InverseIntersectOperator extends BinaryGraphOperator with Serializable {
       .map{ case ((srcId, dstId), (a, b)) => Edge(srcId, dstId, a) }
     //union edges
     val edges = edges1.union(edges2)
-    val inverseGraph = Graph(g1.vertices.union(g2.vertices).distinct, edges)
+    val inverseGraph = Graph.fromEdges(edges, "inverse")
     inverseGraph
   }
 
