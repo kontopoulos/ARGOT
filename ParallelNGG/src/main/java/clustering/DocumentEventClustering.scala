@@ -1,7 +1,6 @@
 import java.io.FileWriter
 
 import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
 
 /**
   * @author Kontopoulos Ioannis
@@ -12,9 +11,9 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
     * Clusters documents based on
     * the events the documents talk about
     * @param path the directory of the documents to cluster
-    * @return array containing the clusters
+    * @return map containing the clusters
     */
-  override def getClusters(path: String): Array[(Int, String)] = {
+  override def getClusters(path: String): Map[Int, Array[String]] = {
     val documents = new java.io.File(path).listFiles.map(f => f.getAbsolutePath)
 
     val gsc = new GraphSimilarityCalculator
@@ -29,12 +28,12 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
     //compare all possible pairs of documents
     documents.foreach{doc =>
       //get the number of occurrences of this document in the cluster
-      var clustered = clusters.filter(x => x._2 == doc).length
+      var clustered = clusters.filter(x => x._2 == doc)
       //if it is not already in the cluster, cluster it
-      if (clustered == 0) {
+      if (clustered.isEmpty) {
         //increase cluster id
         clusterId += 1
-        clusters = clusters ++ Array((clusterId, doc))
+        clusters ++= Array((clusterId, doc))
         //create entity and graph
         val curE = new StringEntity
         curE.readFile(sc, doc, 2)
@@ -44,16 +43,16 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
         //compare current document with all the next ones
         for (i <- next to documents.length-1) {
           //get the number of occurrences of the next document in the cluster
-          clustered = clusters.filter(x => x._2 == documents(i)).length
+          clustered = clusters.filter(x => x._2 == documents(i))
           //if already clustered do not compare
-          if (clustered == 0) {
+          if (clustered.isEmpty) {
             val e = new StringEntity
             e.readFile(sc, documents(i), 2)
             val g = wggc.getGraph(e)
             val gs = gsc.getSimilarity(curG, g)
             //if similarity values exceed a specific value add to cluster
             if (gs.getSimilarityComponents("normalized") > 0.2 && gs.getSimilarityComponents("size") > 0.1) {
-              clusters = clusters ++ Array((clusterId, documents(i)))
+              clusters ++= Array((clusterId, documents(i)))
             }
           }
         }
@@ -63,17 +62,19 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
         next += 1
       }
     }
-    clusters
+    clusters.groupBy(_._1).mapValues(_.map(_._2))
   }
 
   /**
     * Save clusters to csv file format
     * @param clusters clusters to save
     */
-  def saveClustersToCsv(clusters: Array[(Int, String)]) = {
+  def saveClustersToCsv(clusters: Map[Int, Array[String]]) = {
     val w = new FileWriter("clusters.csv")
     try {
-      clusters.foreach(cl => w.write(cl._1 + "," + cl._2 + "\n"))
+      clusters.foreach{case(k,v) =>
+          v.foreach(el => w.write(k + "," + el + "\n"))
+      }
     }
     catch {
       case ex: Exception => {
@@ -87,13 +88,23 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
     * Read clusters from csv file
     * @param sc SparkContext
     * @param file file to read
-    * @return array of clusters
+    * @return map of clusters
     */
-  def loadClustersFromCsv(sc: SparkContext, file: String): RDD[(Int, String)] = {
-    sc.textFile(file).map{line =>
-      val clusters = line.split(",")
-      (clusters(0).toInt, clusters(1))
+  def loadClustersFromCsv(sc: SparkContext, file: String): Map[Int,Array[String]] = {
+    var clusters: Map[Int,Array[String]] = Map()
+    sc.textFile(file).collect.foreach{line =>
+      val parts = line.split(",")
+      val clusterId = parts.head.toInt
+      val text = parts.last
+      if (clusters.contains(clusterId)) {
+        val elements = clusters(clusterId) ++ Array(text)
+        clusters += clusterId -> elements
+      }
+      else {
+        clusters += clusterId -> Array(text)
+      }
     }
+    clusters
   }
 
 }

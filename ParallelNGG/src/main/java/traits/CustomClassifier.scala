@@ -10,6 +10,6 @@ trait CustomClassifier {
 
   def train(trainset: Array[String]): Graph[String, Double]
 
-  def test(f: String, graphs: List[Graph[String, Double]]): List[String]
+  def test(f: String, graphs: Array[Graph[String, Double]]): Array[String]
 
 }

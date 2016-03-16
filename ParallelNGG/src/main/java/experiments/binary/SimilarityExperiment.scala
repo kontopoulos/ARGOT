@@ -4,7 +4,7 @@ import org.apache.spark.graphx.Graph
 /**
  * @author Kontopoulos Ioannis
  */
-class SimpleSimilarityClassifier(val sc: SparkContext, val numPartitions: Int) extends CustomClassifier {
+class SimilarityExperiment(val sc: SparkContext, val numPartitions: Int) extends CustomClassifier {
 
   /**
    * Train the system based on a dataset
@@ -15,7 +15,7 @@ class SimpleSimilarityClassifier(val sc: SparkContext, val numPartitions: Int) e
     val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
     val m = new MergeOperator(0.5)
     val e1 = new StringEntity
-    e1.readFile(sc, trainset(0), numPartitions)
+    e1.readFile(sc, trainset.head, numPartitions)
     val e2 = new StringEntity
     e2.readFile(sc, trainset(1), numPartitions)
     val g1 = nggc.getGraph(e1)
@@ -44,7 +44,7 @@ class SimpleSimilarityClassifier(val sc: SparkContext, val numPartitions: Int) e
    * @param graphs list of class graphs
    * @return list of labels
    */
-  override def test(f: String, graphs: List[Graph[String, Double]]): List[String] = {
+  override def test(f: String, graphs: Array[Graph[String, Double]]): Array[String] = {
     val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
     val e = new StringEntity
     e.readFile(sc, f, numPartitions)
@@ -52,18 +52,18 @@ class SimpleSimilarityClassifier(val sc: SparkContext, val numPartitions: Int) e
     val gsc = new GraphSimilarityCalculator
     //taking into account the sum of value, normalized value and containment similarities in every case
     //test with first class
-    val gs1 = gsc.getSimilarity(testGraph, graphs(0))
+    val gs1 = gsc.getSimilarity(testGraph, graphs.head)
     val simil01 = gs1.getSimilarityComponents("value") + gs1.getSimilarityComponents("normalized") + gs1.getSimilarityComponents("containment")
     //test with second class
     val gs2 = gsc.getSimilarity(testGraph, graphs(1))
     val simil02 = gs2.getSimilarityComponents("value") + gs2.getSimilarityComponents("normalized") + gs2.getSimilarityComponents("containment")
     //evaluate and return predicted label
-    var labels: List[String] = Nil
+    var labels = Array.empty[String]
     if (simil01 > simil02) {
-      labels :::= List("C01")
+      labels :+= "C01"
     }
     else {
-      labels :::= List("C02")
+      labels :+= "C02"
     }
     labels
   }

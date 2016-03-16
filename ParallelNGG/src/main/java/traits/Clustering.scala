@@ -3,6 +3,6 @@
   */
 trait Clustering {
 
-  def getClusters(path: String): Array[(Int, String)]
+  def getClusters(path: String): Map[Int, Array[String]]
 
 }

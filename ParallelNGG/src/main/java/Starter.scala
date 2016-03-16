@@ -20,14 +20,12 @@ object Starter {
 
     val start = System.currentTimeMillis
 
-    /*val dec = new DocumentEventClustering(sc)
-    val clusters = dec.getClusters("corpora")
-    dec.saveClustersToCsv(clusters)*/
 
-    val e = new StringEntity
-    e.readFile(sc, "corpora/0001829", 2)
-    val ss = new OpenNLPSentenceSplitter("en-sent.bin")
-    ss.getSentences(e).foreach(a => println("Beg:" + a.dataStream))
+    /*val dec = new DocumentEventClustering(sc)
+    val clusters = dec.loadClustersFromCsv(sc, "clusters.csv")
+    clusters.foreach{case(k,v) =>
+        v.foreach(x => println(k + "->" + x))
+    }*/
 
 
     val end = System.currentTimeMillis
