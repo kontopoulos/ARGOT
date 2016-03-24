@@ -12,8 +12,8 @@
 val numPartitions = 4 
 - Create n-gram graph from file  
 val e = new StringEntity  
-e.readFile("file.txt")  
-val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)  
+e.readFile(sc, "file.txt", numPartitions)  
+val nggc = new NGramGraphCreator(3, 3)  
 val ngg = nggc.getGraph(e)  
 - Merge two graphs (ngg1, ngg2)  
 val mo = new MergeOperator(0.5)  
