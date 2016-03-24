@@ -13,7 +13,7 @@ class DeltaOperator extends BinaryGraphOperator with Serializable {
    * @return graph
    */
   override def getResult(g1: Graph[String, Double], g2: Graph[String, Double]): Graph[String, Double] = {
-    val numPartitions = g1.edges.partitions.size
+    val numPartitions = g1.edges.getNumPartitions
     //pair edges to only the vertices pair
     def edgeToPair (e: Edge[Double]) = ((e.srcId, e.dstId))
     //pair edges so the common edges are the ones with same vertices pair

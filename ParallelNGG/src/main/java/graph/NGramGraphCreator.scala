@@ -1,11 +1,10 @@
-import org.apache.spark.SparkContext
 import org.apache.spark.graphx.{Edge, PartitionStrategy, Graph}
 import org.apache.spark.rdd.RDD
 
 /**
  * @author Kontopoulos Ioannis
  */
-class NGramGraphCreator(val sc: SparkContext, val numPartitions: Int, val ngram: Int, val dwin: Int) extends GraphCreator {
+class NGramGraphCreator(val ngram: Int, val dwin: Int) extends GraphCreator {
 
   /**
    * Creates a graph based on ngram, dwin and entity
@@ -16,6 +15,8 @@ class NGramGraphCreator(val sc: SparkContext, val numPartitions: Int, val ngram:
     val tokenizer = new StringEntityTokenizer
     //slide by ngram step and create vertices
     val atoms = tokenizer.getCharacterNGrams(e, ngram).map(a => (a.label, a.dataStream))
+    val numPartitions = atoms.getNumPartitions
+    val sc = atoms.sparkContext
     val vertices = atoms.collect
     //create edges from vertices
     val edges = (vertices ++ Array.fill(dwin)((-1L, null))) //add dummy vertices at the end

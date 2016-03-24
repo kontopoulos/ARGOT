@@ -17,7 +17,7 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
     val documents = new java.io.File(path).listFiles.map(f => f.getAbsolutePath)
 
     val gsc = new GraphSimilarityCalculator
-    val wggc = new WordNGramGraphCreator(sc, 2, 2, 3)
+    val wggc = new WordNGramGraphCreator(2, 3)
 
     //array that holds the clusters
     var clusters = Array.empty[(Int, String)]

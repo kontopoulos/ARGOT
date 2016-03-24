@@ -21,7 +21,7 @@ class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
     //labelsAndFeatures holds the labeled points for the training model
     var labelsAndFeatures = Array.empty[LabeledPoint]
     //create proper instances for graph creation and similarity calculation
-    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val nggc = new NGramGraphCreator(3, 3)
     val gsc = new GraphSimilarityCalculator
     //create labeled points from first category
     files.head.foreach{ f =>
@@ -61,7 +61,7 @@ class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
     //labelsAndFeatures holds the labeled points from the testing set
     var labelsAndFeatures = Array.empty[LabeledPoint]
     //create proper instances for graph creation and similarity calculation
-    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val nggc = new NGramGraphCreator(3, 3)
     val gsc = new GraphSimilarityCalculator
     //create labeled points from first category
     files.head.foreach{ f =>

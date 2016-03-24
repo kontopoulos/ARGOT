@@ -12,7 +12,7 @@ class SimilarityExperiment(val sc: SparkContext, val numPartitions: Int) extends
    * @return class graph
    */
   override def train(trainset: Array[String]): Graph[String, Double] = {
-    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val nggc = new NGramGraphCreator(3, 3)
     val m = new MergeOperator(0.5)
     val e1 = new StringEntity
     e1.readFile(sc, trainset.head, numPartitions)
@@ -45,7 +45,7 @@ class SimilarityExperiment(val sc: SparkContext, val numPartitions: Int) extends
    * @return list of labels
    */
   override def test(f: String, graphs: Array[Graph[String, Double]]): Array[String] = {
-    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val nggc = new NGramGraphCreator(3, 3)
     val e = new StringEntity
     e.readFile(sc, f, numPartitions)
     val testGraph = nggc.getGraph(e)

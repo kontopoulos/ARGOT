@@ -73,7 +73,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     val training2 = files2.slice(0, currentFold) ++ files2.slice(currentFold+files2.length/numFold, files2.length)
     println("Separation complete.")
     println("Creating merging lineage...")
-    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val nggc = new NGramGraphCreator(3, 3)
     val m = new MergeOperator(0.5)
     //merge graphs from first training set to a class graph
     val e1 = new StringEntity
@@ -190,7 +190,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     val training2 = files2.slice(0, currentFold) ++ files2.slice(currentFold+files2.size/numFold, files2.length)
     println("Separation complete.")
     println("Creating merging lineage...")
-    val nggc = new NGramGraphCreator(sc, numPartitions, 3, 3)
+    val nggc = new NGramGraphCreator(3, 3)
     val m = new MergeOperator(0.5)
     //merge graphs from first training set to a class graph
     val e1 = new StringEntity

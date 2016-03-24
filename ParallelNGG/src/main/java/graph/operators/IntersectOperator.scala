@@ -16,7 +16,7 @@ class IntersectOperator(val l: Double) extends BinaryGraphOperator with Serializ
   def getResult(g1: Graph[String, Double], g2: Graph[String, Double]): Graph[String, Double] = {
     //pair edges so the common edges are the ones with same vertices pair
     def edgeToPair (e: Edge[Double]) = ((e.srcId, e.dstId), e.attr)
-    val pairs1 = g1.edges.map(edgeToPair).partitionBy(new HashPartitioner(g1.edges.partitions.size))
+    val pairs1 = g1.edges.map(edgeToPair).partitionBy(new HashPartitioner(g1.edges.getNumPartitions))
     val pairs2 = g2.edges.map(edgeToPair)
     //combine edges
     val newEdges = pairs1.join(pairs2)

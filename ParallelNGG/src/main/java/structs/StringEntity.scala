@@ -12,11 +12,20 @@ class StringEntity extends Entity {
   def getPayload = dataStringRDD
 
   /**
-    * Reads dataString from a file, distributed version
+    * Reads dataString from a string
+    * @param sc SparkContext
+    * @param data string
+    * @param numPartitions number of partitions
+    */
+  def fromString(sc: SparkContext, data: String, numPartitions: Int) = {
+    dataStringRDD = sc.parallelize(Seq(data), numPartitions)
+  }
+
+  /**
+    * Reads dataString from a file
     * @param sc SparkContext
     * @param file file to read
     * @param numPartitions number of partitions
-    * @return lines of file
     */
   def readFile(sc: SparkContext, file: String, numPartitions: Int) = {
     dataStringRDD = sc.textFile(file, numPartitions)

@@ -1,11 +1,10 @@
-import org.apache.spark.SparkContext
 import org.apache.spark.graphx.{PartitionStrategy, Edge, Graph}
 import org.apache.spark.rdd.RDD
 
 /**
   * @author Kontopoulos Ioannis
   */
-class WordNGramGraphCreator(val sc: SparkContext, val numPartitions: Int, val ngram: Int, val dwin: Int) extends GraphCreator {
+class WordNGramGraphCreator(val ngram: Int, val dwin: Int) extends GraphCreator {
 
   /**
     * Creates a graph based on dwin and entity
@@ -17,6 +16,8 @@ class WordNGramGraphCreator(val sc: SparkContext, val numPartitions: Int, val ng
     //create vertices based on ngram size
     val atoms = tokenizer.getCapWordNGrams(e, ngram)
       .map(a => (a.dataStream.toLowerCase.hashCode.toLong, a.dataStream))
+    val numPartitions = atoms.getNumPartitions
+    val sc = atoms.sparkContext
     val vertices = atoms.collect
     //create edges from vertices
     val edges = (vertices ++ Array.fill(dwin)((-1L, null))) //add dummy vertices at the end

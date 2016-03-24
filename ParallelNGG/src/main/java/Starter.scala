@@ -20,13 +20,11 @@ object Starter {
 
     val start = System.currentTimeMillis
 
-
     /*val dec = new DocumentEventClustering(sc)
     val clusters = dec.loadClustersFromCsv(sc, "clusters.csv")
     clusters.foreach{case(k,v) =>
         v.foreach(x => println(k + "->" + x))
     }*/
-
 
     val end = System.currentTimeMillis
     println("Duration: " + (end-start).toDouble/1000 + " seconds")
