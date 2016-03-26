@@ -14,7 +14,7 @@ class NGramGraphCreator(val ngram: Int, val dwin: Int) extends GraphCreator {
   override def getGraph(e: Entity): Graph[String, Double] = {
     val tokenizer = new StringEntityTokenizer
     //slide by ngram step and create vertices
-    val atoms = tokenizer.getCharacterNGrams(e, ngram).map(a => (a.label, a.dataStream))
+    val atoms = tokenizer.getCharacterNGrams(e, ngram).map(a => (a.dataStream.toLowerCase.hashCode.toLong, a.dataStream))
     val numPartitions = atoms.getNumPartitions
     val sc = atoms.sparkContext
     val vertices = atoms.collect

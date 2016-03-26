@@ -10,11 +10,10 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
   /**
     * Clusters documents based on
     * the events the documents talk about
-    * @param path the directory of the documents to cluster
+    * @param documents the documents to cluster
     * @return map containing the clusters
     */
-  override def getClusters(path: String): Map[Int, Array[String]] = {
-    val documents = new java.io.File(path).listFiles.map(f => f.getAbsolutePath)
+  override def getClusters(documents: Array[String]): Map[Int, Array[String]] = {
 
     val gsc = new GraphSimilarityCalculator
     val wggc = new WordNGramGraphCreator(2, 3)
@@ -70,7 +69,7 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
     * @param clusters clusters to save
     */
   def saveClustersToCsv(clusters: Map[Int, Array[String]]) = {
-    val w = new FileWriter("clusters.csv")
+    val w = new FileWriter("event_clusters.csv")
     try {
       clusters.foreach{case(k,v) =>
           v.foreach(el => w.write(k + "," + el + "\n"))
@@ -86,11 +85,10 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
 
   /**
     * Read clusters from csv file
-    * @param sc SparkContext
     * @param file file to read
     * @return map of clusters
     */
-  def loadClustersFromCsv(sc: SparkContext, file: String): Map[Int,Array[String]] = {
+  def loadClustersFromCsv(file: String): Map[Int,Array[String]] = {
     var clusters: Map[Int,Array[String]] = Map()
     sc.textFile(file).collect.foreach{line =>
       val parts = line.split(",")

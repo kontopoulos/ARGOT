@@ -23,7 +23,7 @@ class OpenNLPSentenceSplitter(val modelFile: String) extends SentenceSplitter wi
     //because a sentence might be split to more than one partitions
     //we take the sentences that were not split to partitions
     val goodSplits = badSentences
-        .filter(s => (s.endsWith(".") || s.endsWith("?") || s.endsWith("!") || s.endsWith(":") || s.endsWith(";")) && !Character.isLowerCase(s.codePointAt(0)))
+        .filter(s => (s.endsWith(".") || s.endsWith("?") || s.endsWith("!") || s.endsWith(":") || s.endsWith(";")) && (!Character.isLowerCase(s.codePointAt(0)) && Character.isLetter(s.codePointAt(0))))
     //we take sentences that were split to partitions
     val badSplits = badSentences
       .filter(s => (!s.endsWith(".") && !s.endsWith("?") && !s.endsWith("!") && !s.endsWith(":") && !s.endsWith(";")) || !Character.isUpperCase(s.codePointAt(0)))

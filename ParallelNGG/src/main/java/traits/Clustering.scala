@@ -3,6 +3,6 @@
   */
 trait Clustering {
 
-  def getClusters(path: String): Map[Int, Array[String]]
+  def getClusters(documents: Array[String]): Map[Int, Array[String]]
 
 }
