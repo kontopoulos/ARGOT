@@ -1,3 +1,6 @@
+import java.io.FileWriter
+
+import org.apache.spark.SparkContext
 import org.apache.spark.mllib.linalg.SparseVector
 import org.apache.spark.mllib.linalg.distributed.{BlockMatrix, IndexedRow, IndexedRowMatrix}
 import org.apache.spark.rdd.RDD
@@ -25,19 +28,44 @@ class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRat
     while (iter < maxIterations && change > 0) {
       val M2: IndexedRowMatrix = removeWeakConnections(normalization(inflation(expansion(M1))))
       change = difference(M1, M2)
-      iter = iter + 1
+      iter += 1
       M1 = M2
     }
 
-    val clusters =
-      M1.rows.flatMap(
-        r => {
-          val sv = r.vector.toSparse
-          sv.indices.map(i => (r.index, (i, sv.apply(i))))
-        }
-      ).groupByKey()
-        .map(node => (node._1, node._2.maxBy(_._2)._1))
+    val clusters = M1.rows.flatMap( r => {
+        val sv = r.vector.toSparse
+        sv.indices.map(i => (r.index, (i, sv.apply(i))))
+      }
+    ).groupByKey.map(node => (node._1, node._2.maxBy(_._2)._1))
     clusters
+  }
+
+  /**
+    * Save clusters to csv file format
+    * @param clusters to save
+    */
+  def saveClustersToCsv(clusters: RDD[(Long,Int)]) = {
+    val w = new FileWriter("clusters.csv")
+    try {
+      clusters.foreach(x => w.write(x._1 + "," + x._2 + "\n"))
+    }
+    catch {
+      case ex: Exception => println("Could not write to file. Reason: " + ex.getMessage)
+    }
+    finally w.close
+  }
+
+  /**
+    * Load clusters from csv file
+    * @param sc SparkContext
+    * @param file file to load
+    * @return clusters
+    */
+  def loadClustersFromCsv(sc: SparkContext, file: String): RDD[(Long,Int)] = {
+    sc.textFile(file).map{x =>
+      val parts = x.split(",")
+      (parts.head.toLong, parts.last.toInt)
+    }
   }
 
   /**
@@ -47,12 +75,11 @@ class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRat
     */
   private def normalization(mat: IndexedRowMatrix): IndexedRowMatrix ={
     new IndexedRowMatrix(
-      mat.rows
-        .map{row =>
-          val svec = row.vector.toSparse
-          IndexedRow(row.index,
-            new SparseVector(svec.size, svec.indices, svec.values.map(v => v/svec.values.sum)))
-        })
+      mat.rows.map{row =>
+        val svec = row.vector.toSparse
+        IndexedRow(row.index, new SparseVector(svec.size, svec.indices, svec.values.map(v => v/svec.values.sum)))
+      }
+    )
   }
 
   /**
@@ -79,8 +106,7 @@ class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRat
       mat.toIndexedRowMatrix().rows
         .map{row =>
           val svec = row.vector.toSparse
-          IndexedRow(row.index,
-            new SparseVector(svec.size, svec.indices, svec.values.map(v => Math.exp(inflationRate*Math.log(v)))))
+          IndexedRow(row.index, new SparseVector(svec.size, svec.indices, svec.values.map(v => Math.exp(inflationRate*Math.log(v)))))
         }
     )
   }
