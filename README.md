@@ -4,7 +4,7 @@
 - IntelliJ Project  
 
 #Specifications
-- Apache Spark 1.6.0 with Graphx  
+- Apache Spark 1.6.1 with Graphx and MLlib  
 - scala 2.10.4   
 
 #Examples of Basic Use

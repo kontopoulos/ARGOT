@@ -15,7 +15,7 @@ class WordNGramGraphCreator(val ngram: Int, val dwin: Int) extends GraphCreator 
     val tokenizer = new StringEntityTokenizer
     //create vertices based on ngram size
     val atoms = tokenizer.getCapWordNGrams(e, ngram)
-      .map(a => (a.dataStream.toLowerCase.hashCode.toLong, a.dataStream))
+      .map(a => (a.label, a.dataStream))
     val numPartitions = atoms.getNumPartitions
     val sc = atoms.sparkContext
     val vertices = atoms.collect

@@ -76,11 +76,9 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
       }
     }
     catch {
-      case ex: Exception => {
-        println("Could not write to file. Reason: " + ex.getMessage)
-      }
+      case ex: Exception => println("Could not write to file. Reason: " + ex.getMessage)
     }
-    w.close
+    finally w.close
   }
 
   /**

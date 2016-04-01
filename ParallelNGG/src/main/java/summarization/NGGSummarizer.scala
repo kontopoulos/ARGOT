@@ -15,7 +15,7 @@ class NGGSummarizer(val sc: SparkContext, numPartitions: Int) {
 
     val dec = new DocumentEventClustering(sc)
     //val test = dec.getClusters(documents)
-    val eventClusters = dec.loadClustersFromCsv("clusters.csv")
+    val eventClusters = dec.loadClustersFromCsv("event_clusters.csv")
 
     val ss = new OpenNLPSentenceSplitter("en-sent.bin")
 
@@ -33,22 +33,24 @@ class NGGSummarizer(val sc: SparkContext, numPartitions: Int) {
       val indexedSentences = sentences.filter(sa => sa.dataStream != "dummy").zipWithIndex
       val sMatrix = getSimilarityMatrix(indexedSentences)
 
-      val mcl = new MatrixMCL(10,2,2.0,0.05)
+      val mcl = new MatrixMCL(100,2,2.0,0.05)
+
+
       val markovClusters = mcl.getMarkovClusters(sMatrix).partitionBy(new HashPartitioner(numPartitions))
 
       val sentenceClusters = markovClusters.join(indexedSentences.map(s => (s._2, s._1))).map(x => x._2)
 
 
 
-      /*println("====== clusters start ======")
+      println("====== clusters start ======")
 
-      sentenceClusters.groupBy(_._1).mapValues(_.map(_._2)).filter{case (key,value) => value.nonEmpty}.foreach{ case (key,value) =>
+      sentenceClusters.collect.groupBy(_._1).mapValues(_.map(_._2))/*.filter{case (key,value) => value.nonEmpty}*/.foreach{ case (key,value) =>
           println("clusterId " + key)
           value.foreach(sa => println(sa.dataStream))
           println
       }
 
-        println("====== clusters end ======")*/
+        println("====== clusters end ======")
 
 
     }
