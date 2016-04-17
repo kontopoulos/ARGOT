@@ -1,3 +1,4 @@
+import org.apache.spark.HashPartitioner
 import org.apache.spark.graphx.{Edge, Graph}
 
 /**
@@ -20,24 +21,18 @@ class GraphSimilarityCalculator extends SimilarityCalculator with Serializable {
     val sSimil = Math.min(g1EdgeCount, g2EdgeCount).toDouble/Math.max(g1EdgeCount, g2EdgeCount)
     //pair edges so the common edges are the ones with same vertices pair
     def edgeToPair (e: Edge[Double]) = ((e.srcId, e.dstId), e.attr)
-    val pairs1 = g1.edges.map(edgeToPair)
+    val pairs1 = g1.edges.map(edgeToPair).partitionBy(new HashPartitioner(g1.edges.getNumPartitions))
     val pairs2 = g2.edges.map(edgeToPair)
     val commonEdges = pairs1.join(pairs2)
     commonEdges.cache
     //c holds the number of common edges
     val c = commonEdges.count
-    var minEdgeWeight = 1.0
-    var maxEdgeWeight = 1.0
+    var vSimil = 0.0
     //if there are common edges
     if (c != 0) {
-      //minimum edge weight of the common edges
-      minEdgeWeight = commonEdges.map(e => Math.min(e._2._1, e._2._2)).min
-      //maximum edge weight of the common edges
-      maxEdgeWeight = commonEdges.map(e => Math.max(e._2._1, e._2._2)).max
+      vSimil = commonEdges.map(e => Math.min(e._2._1, e._2._2)/Math.max(e._2._1, e._2._2)).sum/Math.max(g1EdgeCount,g2EdgeCount)
     }
     commonEdges.unpersist()
-    //for each common edge add (minimum edge weight/maximum edge weight)/maximum graph size to a sum
-    val vSimil = minEdgeWeight/maxEdgeWeight/Math.max(g1EdgeCount, g2EdgeCount)*c
     //for each common edge add 1/min to a sum
     val cSimil = (1.toDouble/Math.min(g1EdgeCount, g2EdgeCount))*c
     val gs = new GraphSimilarity(sSimil, vSimil, cSimil)

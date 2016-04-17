@@ -5,7 +5,7 @@ import org.apache.spark.SparkContext
 /**
   * @author Kontopoulos Ioannis
   */
-class DocumentEventClustering(sc: SparkContext) extends Clustering {
+class DocumentEventClustering(sc: SparkContext, numPartitions: Int) extends Clustering {
 
   /**
     * Clusters documents based on
@@ -35,7 +35,7 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
         clusters ++= Array((clusterId, doc))
         //create entity and graph
         val curE = new StringEntity
-        curE.readFile(sc, doc, 2)
+        curE.readFile(sc, doc, numPartitions)
         val curG = wggc.getGraph(curE)
         //cache edges for future use
         curG.edges.distinct.cache
@@ -46,7 +46,7 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
           //if already clustered do not compare
           if (clustered.isEmpty) {
             val e = new StringEntity
-            e.readFile(sc, documents(i), 2)
+            e.readFile(sc, documents(i), numPartitions)
             val g = wggc.getGraph(e)
             val gs = gsc.getSimilarity(curG, g)
             //if similarity values exceed a specific value add to cluster
@@ -88,7 +88,7 @@ class DocumentEventClustering(sc: SparkContext) extends Clustering {
     */
   def loadClustersFromCsv(file: String): Map[Int,Array[String]] = {
     var clusters: Map[Int,Array[String]] = Map()
-    sc.textFile(file).collect.foreach{line =>
+    sc.textFile(file, numPartitions).collect.foreach{line =>
       val parts = line.split(",")
       val clusterId = parts.head.toInt
       val text = parts.last
