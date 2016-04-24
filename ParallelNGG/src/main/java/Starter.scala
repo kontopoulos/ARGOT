@@ -21,8 +21,8 @@ object Starter {
     val start = System.currentTimeMillis
 
     val sum = new NGGSummarizer(sc, 1, false)
-    val summary = sum.getSummary("corpora")
-    sum.saveSummary(summary)
+    val summaries = sum.getSummary("corpora")
+    sum.saveSummaries(summaries)
 
     val end = System.currentTimeMillis
     println("Duration: " + (end-start).toDouble/1000 + " seconds")
