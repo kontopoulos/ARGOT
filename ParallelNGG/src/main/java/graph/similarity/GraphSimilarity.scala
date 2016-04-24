@@ -22,8 +22,8 @@ class GraphSimilarity(private val sizeSimilarity: Double, private val valueSimil
     val vSimil = BigDecimal(valueSimilarity*100).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
     val nSimil = BigDecimal(valueSimilarity/sizeSimilarity*100).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
     val cSimil = BigDecimal(containmentSimilarity*100).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
-    val oSimil = BigDecimal(sizeSimilarity * valueSimilarity * containmentSimilarity*100).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
-    "Size Similarity: " + sSimil + "%\n" + "Value Similarity: " + vSimil + "%\n" + "Normalized Value Similarity: " + nSimil + "%\n" + "Containment Similarity: " + cSimil + "%\n" + "Overall Similarity: " + oSimil + "%"
+    val aSimil = (sSimil + vSimil + cSimil)/3
+    "Size Similarity: " + sSimil + "%\n" + "Value Similarity: " + vSimil + "%\n" + "Normalized Value Similarity: " + nSimil + "%\n" + "Containment Similarity: " + cSimil + "%\n" + "Averaged Similarity: " + aSimil + "%"
   }
 
 }

@@ -41,34 +41,6 @@ class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRat
   }
 
   /**
-    * Save clusters to csv file format
-    * @param clusters to save
-    */
-  def saveClustersToCsv(clusters: RDD[(Long,Int)]) = {
-    val w = new FileWriter("clusters.csv")
-    try {
-      clusters.foreach(x => w.write(x._1 + "," + x._2 + "\n"))
-    }
-    catch {
-      case ex: Exception => println("Could not write to file. Reason: " + ex.getMessage)
-    }
-    finally w.close
-  }
-
-  /**
-    * Load clusters from csv file
-    * @param sc SparkContext
-    * @param file file to load
-    * @return clusters
-    */
-  def loadClustersFromCsv(sc: SparkContext, file: String): RDD[(Long,Int)] = {
-    sc.textFile(file).map{x =>
-      val parts = x.split(",")
-      (parts.head.toLong, parts.last.toInt)
-    }
-  }
-
-  /**
     * Normalizes the matrix
     * @param mat a matrix
     * @return normalized matrix
@@ -153,5 +125,32 @@ class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRat
     )
   }
 
+  /**
+    * Save clusters to csv file format
+    * @param clusters to save
+    */
+  def saveClustersToCsv(clusters: RDD[(Long,Int)]) = {
+    val w = new FileWriter("clusters.csv")
+    try {
+      clusters.foreach(x => w.write(x._1 + "," + x._2 + "\n"))
+    }
+    catch {
+      case ex: Exception => println("Could not write to file. Reason: " + ex.getMessage)
+    }
+    finally w.close
+  }
+
+  /**
+    * Load clusters from csv file
+    * @param sc SparkContext
+    * @param file file to load
+    * @return clusters
+    */
+  def loadClustersFromCsv(sc: SparkContext, file: String): RDD[(Long,Int)] = {
+    sc.textFile(file).map{x =>
+      val parts = x.split(",")
+      (parts.head.toLong, parts.last.toInt)
+    }
+  }
 
 }

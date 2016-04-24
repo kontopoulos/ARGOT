@@ -38,7 +38,7 @@ class DocumentEventClustering(sc: SparkContext, numPartitions: Int) extends Clus
         curE.readFile(sc, doc, numPartitions)
         val curG = wggc.getGraph(curE)
         //cache edges for future use
-        curG.edges.distinct.cache
+        curG.cache
         //compare current document with all the next ones
         for (i <- next to documents.length-1) {
           //get the number of occurrences of the next document in the cluster
@@ -56,7 +56,7 @@ class DocumentEventClustering(sc: SparkContext, numPartitions: Int) extends Clus
           }
         }
         //unpersist edges from memory
-        curG.edges.distinct.unpersist()
+        curG.unpersist()
         //increase the next document index
         next += 1
       }
