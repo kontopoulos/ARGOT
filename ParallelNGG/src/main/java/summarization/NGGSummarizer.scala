@@ -86,18 +86,18 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     println("Extracting subtopics...")
     sentenceClusters.collect.groupBy(_._1).mapValues(_.map(_._2)).foreach{ case (key,value) =>
       val eFirst = new StringEntity
-      eFirst.fromString(sc,value.head.dataStream,numPartitions)
+      eFirst.fromString(sc,value.head.dataStream,1)
       var intersected = nggc.getGraph(eFirst)
       //intersect current graph to all the next ones
       for (i <- 1 to value.length-1) {
         val curE = new StringEntity
-        curE.fromString(sc,value(i).dataStream,numPartitions)
+        curE.fromString(sc,value(i).dataStream,1)
         if (i % 20 == 0) {
           intersected.cache
           if (toCheckpoint) intersected.checkpoint
           intersected.numEdges
         }
-        intersected = io.getResult(intersected, nggc.getGraph(curE))
+        intersected = io.getResult(nggc.getGraph(curE),intersected)
       }
       subtopics :+= intersected
     }
@@ -122,7 +122,7 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     val gsc = new GraphSimilarityCalculator
     indexedSentences.map(_._1.dataStream).collect.foreach{s =>
       val curE = new StringEntity
-      curE.fromString(sc,s,numPartitions)
+      curE.fromString(sc,s,1)
       val gs = gsc.getSimilarity(nggc.getGraph(curE),eventEssence)
       sentencesToFilter :+= (gs.getSimilarityComponents("value"),s)
     }
@@ -161,12 +161,12 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     //compare all sentences between them and create similarity matrix
     idxSentenceArray.foreach{ case (a,id) =>
       val curE = new StringEntity
-      curE.fromString(sc, a.dataStream, numPartitions)
+      curE.fromString(sc, a.dataStream, 1)
       val curG = nggc.getGraph(curE)
       curG.cache
       for (i <- next to numSentences-1) {
         val e = new StringEntity
-        e.fromString(sc, idxSentenceArray(i)._1.dataStream, numPartitions)
+        e.fromString(sc, idxSentenceArray(i)._1.dataStream, 1)
         val g = nggc.getGraph(e)
         val gs = gsc.getSimilarity(g, curG)
         similarities ++= Array((id.toInt,(idxSentenceArray(i)._2.toInt,gs.getSimilarityComponents("normalized"))))
@@ -203,13 +203,13 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
       if (!badSentences.contains(s)) {
         trimmedSentences :+= s
         val curE = new StringEntity
-        curE.fromString(sc,s,numPartitions)
+        curE.fromString(sc,s,1)
         val curG = nggc.getGraph(curE)
         curG.cache
         for (i <- next to numSentences-1) {
           val curS = sentences(i)
           val e = new StringEntity
-          e.fromString(sc,curS,numPartitions)
+          e.fromString(sc,curS,1)
           val g = nggc.getGraph(e)
           val nvs = gsc.getSimilarity(g,curG).getSimilarityComponents("normalized")
           //if similarity over threshold, it means the sentence contains repeated information
