@@ -27,7 +27,7 @@ class StringEntity extends Entity {
     * @param file file to read
     * @param numPartitions number of partitions
     */
-  def readFile(sc: SparkContext, file: String, numPartitions: Int) = {
+  def fromFile(sc: SparkContext, file: String, numPartitions: Int) = {
     dataStringRDD = sc.textFile(file, numPartitions)
   }
 

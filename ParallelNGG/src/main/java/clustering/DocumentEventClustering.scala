@@ -35,7 +35,7 @@ class DocumentEventClustering(sc: SparkContext, numPartitions: Int) extends Clus
         clusters ++= Array((clusterId, doc))
         //create entity and graph
         val curE = new StringEntity
-        curE.readFile(sc, doc, numPartitions)
+        curE.fromFile(sc, doc, numPartitions)
         val curG = wggc.getGraph(curE)
         //cache edges for future use
         curG.cache
@@ -46,7 +46,7 @@ class DocumentEventClustering(sc: SparkContext, numPartitions: Int) extends Clus
           //if already clustered do not compare
           if (clustered.isEmpty) {
             val e = new StringEntity
-            e.readFile(sc, documents(i), numPartitions)
+            e.fromFile(sc, documents(i), numPartitions)
             val g = wggc.getGraph(e)
             val gs = gsc.getSimilarity(curG, g)
             //if similarity values exceed a specific value add to cluster

@@ -9,6 +9,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
   /**
    * Runs the n-fold cross validation
    * using the Classifier selected
+ *
    * @param classifier classifier selection
    */
   def run(classifier: String) = {
@@ -58,6 +59,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
    * Calculates precision, recall, accuracy and f-measure
    * of current fold using Support Vector Machines
    * with Stochastic Gradient Descent Classifier
+ *
    * @param currentFold fold to validate
    * @param files1 array of files of first category
    * @param files2 array of files of second category
@@ -77,15 +79,15 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     val m = new MergeOperator(0.5)
     //merge graphs from first training set to a class graph
     val e1 = new StringEntity
-    e1.readFile(sc, training1.head, numPartitions)
+    e1.fromFile(sc, training1.head, numPartitions)
     val g1 = nggc.getGraph(e1)
     val e2 = new StringEntity
-    e2.readFile(sc, training1(1), numPartitions)
+    e2.fromFile(sc, training1(1), numPartitions)
     val g2 = nggc.getGraph(e2)
     var classGraph1 = m.getResult(g1, g2)
     for (i <- 2 to training1.length-1) {
       val e = new StringEntity
-      e.readFile(sc, training1(i), numPartitions)
+      e.fromFile(sc, training1(i), numPartitions)
       val g = nggc.getGraph(e)
       if (i % 30 == 0) {
         //materialize and store for future use
@@ -98,15 +100,15 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     }
     //merge graphs from second training set to a class graph
     val e3 = new StringEntity
-    e3.readFile(sc, training2.head, numPartitions)
+    e3.fromFile(sc, training2.head, numPartitions)
     val g3 = nggc.getGraph(e3)
     val e4 = new StringEntity
-    e4.readFile(sc, training2(1), numPartitions)
+    e4.fromFile(sc, training2(1), numPartitions)
     val g4 = nggc.getGraph(e4)
     var classGraph2 = m.getResult(g3, g4)
     for (i <- 2 to training2.size-1) {
       val e = new StringEntity
-      e.readFile(sc, training2(i), numPartitions)
+      e.fromFile(sc, training2(i), numPartitions)
       val g = nggc.getGraph(e)
       if (i % 30 == 0) {
         //materialize and store for future use
@@ -175,6 +177,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
   /**
    * Calculates precision, recall, accuracy and f-measure
    * of current fold using Naive Bayes Classifier
+ *
    * @param currentFold fold to validate
    * @param files1 array of files of first category
    * @param files2 array of files of second category
@@ -194,15 +197,15 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     val m = new MergeOperator(0.5)
     //merge graphs from first training set to a class graph
     val e1 = new StringEntity
-    e1.readFile(sc, training1.head, numPartitions)
+    e1.fromFile(sc, training1.head, numPartitions)
     val g1 = nggc.getGraph(e1)
     val e2 = new StringEntity
-    e2.readFile(sc, training1(1), numPartitions)
+    e2.fromFile(sc, training1(1), numPartitions)
     val g2 = nggc.getGraph(e2)
     var classGraph1 = m.getResult(g1, g2)
     for (i <- 2 to training1.length-1) {
       val e = new StringEntity
-      e.readFile(sc, training1(i), numPartitions)
+      e.fromFile(sc, training1(i), numPartitions)
       val g = nggc.getGraph(e)
       if (i % 30 == 0) {
         //materialize and store for future use
@@ -215,15 +218,15 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     }
     //merge graphs from second training set to a class graph
     val e3 = new StringEntity
-    e3.readFile(sc, training2.head, numPartitions)
+    e3.fromFile(sc, training2.head, numPartitions)
     val g3 = nggc.getGraph(e3)
     val e4 = new StringEntity
-    e4.readFile(sc, training2(1), numPartitions)
+    e4.fromFile(sc, training2(1), numPartitions)
     val g4 = nggc.getGraph(e4)
     var classGraph2 = m.getResult(g3, g4)
     for (i <- 2 to training2.length-1) {
       val e = new StringEntity
-      e.readFile(sc, training2(i), numPartitions)
+      e.fromFile(sc, training2(i), numPartitions)
       val g = nggc.getGraph(e)
       if (i % 30 == 0) {
         //materialize and store for future use
@@ -303,6 +306,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
   /**
    * Calculates precision, recall and accuracy
    * of current fold using the simple classifier
+ *
    * @param currentFold fold to validate
    * @param files1 array of files of first category
    * @param files2 array of files of second category

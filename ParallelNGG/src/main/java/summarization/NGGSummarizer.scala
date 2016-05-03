@@ -32,7 +32,7 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     //for every event extract a summary
     eventClusters.foreach{case (clusterId,docs) =>
 
-      val summary = getSingleSummary(docs)
+      val summary = getTopicSummary(docs)
 
       summaries += clusterId -> summary
 
@@ -46,7 +46,7 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     * @param documents to summarize
     * @return array of sentences
     */
-  def getSingleSummary(documents: Array[String]): Array[String] = {
+  def getTopicSummary(documents: Array[String]): Array[String] = {
 
     val ss = new OpenNLPSentenceSplitter("en-sent.bin")
 
@@ -56,7 +56,7 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     //extract the sentences of the event
     documents.foreach{d =>
       val e = new StringEntity
-      e.readFile(sc, d, numPartitions)
+      e.fromFile(sc, d, numPartitions)
       val s = ss.getSentences(e).asInstanceOf[RDD[StringAtom]]
       sentences = sentences ++ s.collect
     }

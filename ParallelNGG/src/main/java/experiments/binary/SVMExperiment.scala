@@ -13,6 +13,7 @@ class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
   /**
    * Creates Support Vector Machines with Stochastic Gradient Descent Model based on labeled points from training sets
    * Each labeled point consists of a label and a feature vector
+ *
    * @param classGraphs list of graphs containing the class graphs
    * @param files array containing files of the training set
    * @return training model
@@ -26,7 +27,7 @@ class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
     //create labeled points from first category
     files.head.foreach{ f =>
       val e = new StringEntity
-      e.readFile(sc, f, numPartitions)
+      e.fromFile(sc, f, numPartitions)
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
@@ -36,7 +37,7 @@ class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
     //create labeled points from second category
     files(1).foreach{ f =>
       val e = new StringEntity
-      e.readFile(sc, f, numPartitions)
+      e.fromFile(sc, f, numPartitions)
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
@@ -51,6 +52,7 @@ class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
 
   /**
    * Creates labeled points from testing sets and test them with the model provided
+ *
    * @param model classification model
    * @param classGraphs list of graphs containing the class graphs
    * @param files array containing files of the training set
@@ -66,7 +68,7 @@ class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
     //create labeled points from first category
     files.head.foreach{ f =>
       val e = new StringEntity
-      e.readFile(sc, f, numPartitions)
+      e.fromFile(sc, f, numPartitions)
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
@@ -76,7 +78,7 @@ class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
     //create labeled points from second category
     files(1).foreach{ f =>
       val e = new StringEntity
-      e.readFile(sc, f, numPartitions)
+      e.fromFile(sc, f, numPartitions)
       val g = nggc.getGraph(e)
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
       val gs2 = gsc.getSimilarity(g, classGraphs(1))

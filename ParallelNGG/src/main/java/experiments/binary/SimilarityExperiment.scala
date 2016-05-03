@@ -8,6 +8,7 @@ class SimilarityExperiment(val sc: SparkContext, val numPartitions: Int) extends
 
   /**
    * Train the system based on a dataset
+ *
    * @param trainset array of files
    * @return class graph
    */
@@ -15,15 +16,15 @@ class SimilarityExperiment(val sc: SparkContext, val numPartitions: Int) extends
     val nggc = new NGramGraphCreator(3, 3)
     val m = new MergeOperator(0.5)
     val e1 = new StringEntity
-    e1.readFile(sc, trainset.head, numPartitions)
+    e1.fromFile(sc, trainset.head, numPartitions)
     val e2 = new StringEntity
-    e2.readFile(sc, trainset(1), numPartitions)
+    e2.fromFile(sc, trainset(1), numPartitions)
     val g1 = nggc.getGraph(e1)
     val g2 = nggc.getGraph(e2)
     var merged = m.getResult(g1, g2)
     for (i <- 2 to trainset.length-1) {
       val e = new StringEntity
-      e.readFile(sc, trainset(i), numPartitions)
+      e.fromFile(sc, trainset(i), numPartitions)
       val g = nggc.getGraph(e)
       if (i % 30 == 0) {
         //materialize and store for future use
@@ -40,6 +41,7 @@ class SimilarityExperiment(val sc: SparkContext, val numPartitions: Int) extends
 
   /**
    * Tests current document with class graphs
+ *
    * @param f document to be tested
    * @param graphs list of class graphs
    * @return list of labels
@@ -47,7 +49,7 @@ class SimilarityExperiment(val sc: SparkContext, val numPartitions: Int) extends
   override def test(f: String, graphs: Array[Graph[String, Double]]): Array[String] = {
     val nggc = new NGramGraphCreator(3, 3)
     val e = new StringEntity
-    e.readFile(sc, f, numPartitions)
+    e.fromFile(sc, f, numPartitions)
     val testGraph = nggc.getGraph(e)
     val gsc = new GraphSimilarityCalculator
     //taking into account the sum of value, normalized value and containment similarities in every case
