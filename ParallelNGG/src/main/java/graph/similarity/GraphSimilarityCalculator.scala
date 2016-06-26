@@ -14,9 +14,9 @@ class GraphSimilarityCalculator extends SimilarityCalculator with Serializable {
    */
   override def getSimilarity(g1: Graph[String, Double], g2: Graph[String, Double]): Similarity = {
     //number of edges of graph1
-    val g1EdgeCount = g1.numEdges
+    val g1EdgeCount = g1.edges.count
     //number of edges of graph2
-    val g2EdgeCount = g2.numEdges
+    val g2EdgeCount = g2.edges.count
     //calculate size similarity
     val sSimil = Math.min(g1EdgeCount, g2EdgeCount).toDouble/Math.max(g1EdgeCount, g2EdgeCount)
     //pair edges so the common edges are the ones with same vertices pair

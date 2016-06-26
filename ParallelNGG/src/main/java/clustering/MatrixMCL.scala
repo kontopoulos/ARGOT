@@ -5,9 +5,9 @@ import org.apache.spark.mllib.linalg.SparseVector
 import org.apache.spark.mllib.linalg.distributed.{BlockMatrix, IndexedRow, IndexedRowMatrix}
 import org.apache.spark.rdd.RDD
 
+//  TODO keep checking original implementation for mcl improvements
 /**
-  * @author Kontopoulos Ioannis
-  * special thanks to https://github.com/joandre for markov clustering implementation
+  * thanks to https://github.com/joandre for markov clustering implementation
   */
 class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRate: Double, val epsilon: Double) extends Serializable {
 
@@ -26,7 +26,7 @@ class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRat
     var M1:IndexedRowMatrix = normalization(matrix)
     //loop until a steady state is reached (convergence)
     while (iter < maxIterations && change > 0) {
-      val M2: IndexedRowMatrix = removeWeakConnections(normalization(inflation(expansion(M1))))
+      val M2: IndexedRowMatrix = inflation(expansion(M1))
       change = difference(M1, M2)
       iter += 1
       M1 = M2
@@ -40,26 +40,33 @@ class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRat
     clusters
   }
 
-  /**
-    * Normalizes the matrix
-    * @param mat a matrix
+  /** Normalize matrix
+    * @param mat an unnormalized matrix
     * @return normalized matrix
     */
-  private def normalization(mat: IndexedRowMatrix): IndexedRowMatrix ={
+  def normalization(mat: IndexedRowMatrix): IndexedRowMatrix ={
     new IndexedRowMatrix(
-      mat.rows.map{row =>
-        val svec = row.vector.toSparse
-        IndexedRow(row.index, new SparseVector(svec.size, svec.indices, svec.values.map(v => v/svec.values.sum)))
-      }
-    )
+      mat.rows
+        .map{row =>
+          val svec = row.vector.toSparse
+          IndexedRow(row.index,
+            new SparseVector(svec.size, svec.indices, svec.values.map(v => v/svec.values.sum)))
+        })
   }
 
-  /**
-    * Expands the matrix
-    * @param mat a matrix
+  /** Normalize row
+    * @param row an unnormalized row of the  matrix
+    * @return normalized row
+    */
+  def normalization(row: SparseVector): SparseVector ={
+    new SparseVector(row.size, row.indices, row.values.map(v => v/row.values.sum))
+  }
+
+  /** Expand matrix
+    * @param mat an matrix
     * @return expanded matrix
     */
-  private def expansion(mat: IndexedRowMatrix): BlockMatrix = {
+  def expansion(mat: IndexedRowMatrix): BlockMatrix = {
     val bmat = mat.toBlockMatrix()
     var resmat = bmat
     for(i <- 1 until expansionRate){
@@ -68,17 +75,23 @@ class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRat
     resmat
   }
 
-  /**
-    * Inflates the matrix
-    * @param mat a matrix
+  /** Inflate matrix
+    * Prune and normalization are applied locally (on each row). So we avoid two more complete scanning of matrix.
+    * As explained in issue #8, pruning is applied on expanded matrix, so we take advantage of natural normalized expansion state.
+    * @param mat an matrix
     * @return inflated matrix
     */
-  private def inflation(mat: BlockMatrix): IndexedRowMatrix = {
+  def inflation(mat: BlockMatrix): IndexedRowMatrix = {
     new IndexedRowMatrix(
-      mat.toIndexedRowMatrix().rows
+      mat.toIndexedRowMatrix.rows
         .map{row =>
-          val svec = row.vector.toSparse
-          IndexedRow(row.index, new SparseVector(svec.size, svec.indices, svec.values.map(v => Math.exp(inflationRate*Math.log(v)))))
+          val svec = removeWeakConnections(row.vector.toSparse) // Pruning elements locally, instead of scanning all matrix again
+          IndexedRow(row.index,
+            // Normalizing rows locally, instead of scanning all matrix again
+            normalization(
+              new SparseVector(svec.size, svec.indices, svec.values.map(v => Math.exp(inflationRate*Math.log(v))))
+            )
+          )
         }
     )
   }
@@ -104,24 +117,21 @@ class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRat
     diffRDD.sum()
   }
 
-  /**
-    * Removes weakest connections
+  /** Remove weakest connections from a row
     * Connections weight in matrix which is inferior to a very small value is set to 0
-    * @param mat matrix
-    * @return sparsed matrix
+    * @param row a row of the matrix
+    * @return sparsed row
+    * @todo Add more complex pruning strategies.
+    * @see http://micans.org/mcl/index.html
     */
-  private def removeWeakConnections(mat: IndexedRowMatrix): IndexedRowMatrix ={
-    new IndexedRowMatrix(
-      mat.rows.map{row =>
-        val svec = row.vector.toSparse
-        IndexedRow(row.index,
-          new SparseVector(svec.size, svec.indices,
-            svec.values.map(v => {
-              if(v < epsilon) 0.0
-              else v
-            })
-          ))
-      }
+  def removeWeakConnections(row: SparseVector): SparseVector ={
+    new SparseVector(
+      row.size,
+      row.indices,
+      row.values.map(v => {
+        if(v < epsilon) 0.0
+        else v
+      })
     )
   }
 

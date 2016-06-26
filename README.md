@@ -6,13 +6,14 @@
 #Specifications
 - Apache Spark 1.6.1 with Graphx and MLlib  
 - scala 2.10.4   
+- Import JInsect library ("https://sourceforge.net/projects/jinsect/")   
 
 #Examples of Basic Use
 //ideally number of partitions should be equal to the number of physical cores of your cluster  
 val numPartitions = 4 
 - Create n-gram graph from file  
 val e = new StringEntity  
-e.readFile(sc, "file.txt", numPartitions)  
+e.fromFile(sc, "file.txt", numPartitions)  
 val nggc = new NGramGraphCreator(3, 3)  
 val ngg = nggc.getGraph(e)  
 - Merge two graphs (ngg1, ngg2)  
@@ -35,5 +36,15 @@ gs.getSimilarityComponents("size")
 gs.getSimilarityComponents("value")  
 gs.getSimilarityComponents("containment")  
 gs.getSimilarityComponents("normalized")  
+gs.toString  
+
+#Summarization
+//the boolean variable below indicates if there is a nfs or hdfs on your cluster  
+//set it to true if there is, in order to checkpoint the RDDs  
+val sum = new NGGSummarizer(sc,numPartitions,false)  
+//give a folder which contains the documents you need the summary from  
+val sums = sum.getSummary("folder")  
+//save summaries to files  
+sum.saveSummaries(sums)  
 
 For large datasets it is recommended to increase the driver`s memory from spark-env.sh file

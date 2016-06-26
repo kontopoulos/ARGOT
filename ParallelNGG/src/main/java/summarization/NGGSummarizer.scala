@@ -1,5 +1,7 @@
 import java.io.FileWriter
 
+import gr.demokritos.iit.jinsect.documentModel.comparators.NGramCachedGraphComparator
+import gr.demokritos.iit.jinsect.documentModel.representations.DocumentNGramSymWinGraph
 import org.apache.spark.graphx.Graph
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.apache.spark.mllib.linalg.Vectors
@@ -22,6 +24,7 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
 
     val dec = new DocumentEventClustering(sc, numPartitions)
     println("Clustering documents into events...")
+
     //cluster multiple documents into events
     val eventClusters = dec.getClusters(new java.io.File(directory).listFiles.map(f => f.getAbsolutePath))
     dec.saveClustersToCsv(eventClusters)
@@ -40,6 +43,7 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     summaries
   }
 
+  // TODO use JInsect for all the small graph operations (intersection between sentences, all sentences are small)
   /**
     * Given an array of documents (path to documents)
     * extracts the summary of the documents
@@ -48,7 +52,7 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     */
   def getTopicSummary(documents: Array[String]): Array[String] = {
 
-    val ss = new OpenNLPSentenceSplitter("en-sent.bin")
+    val ss = new OpenNLPSentenceSplitter("model_file.bin")
 
     var sentences = Array.empty[StringAtom]
 
@@ -72,8 +76,10 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     val mcl = new MatrixMCL(100,2,2.0,0.05)
 
     println("Markov Clustering on the matrix...")
+
     //get the sentence clusters
     val markovClusters = mcl.getMarkovClusters(sMatrix).partitionBy(new HashPartitioner(numPartitions))
+    markovClusters.cache
 
     //retrieve sentence strings based on sentence ids
     val sentenceClusters = markovClusters.join(indexedSentences.map(s => (s._2, s._1))).map(x => x._2)
@@ -95,11 +101,11 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
         if (i % 20 == 0) {
           intersected.cache
           if (toCheckpoint) intersected.checkpoint
-          intersected.numEdges
+          intersected.edges.count
         }
         intersected = io.getResult(nggc.getGraph(curE),intersected)
       }
-      subtopics :+= intersected
+      subtopics :+= Graph.fromEdges(intersected.edges.repartition(numPartitions),"subtopic")
     }
 
     println("Creating the essence of the documents...")
@@ -110,11 +116,12 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
       if (i % 20 == 0) {
         eventEssence.cache
         if (toCheckpoint) eventEssence.checkpoint
-        eventEssence.numEdges
+        eventEssence.edges.count
       }
       eventEssence = mo.getResult(eventEssence, subtopics(i))
     }
     eventEssence.cache
+    eventEssence.edges.count
 
     println("Comparing each sentence to the essence...")
     //compare each sentence to the merged graph
@@ -146,38 +153,27 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     * @return similarity matrix
     */
   private def getSimilarityMatrix(indexedAtoms: RDD[(StringAtom, Long)]): IndexedRowMatrix = {
-    val idxSentenceArray = indexedAtoms.collect
     //number of sentences
-    val numSentences = idxSentenceArray.length
+    val numSentences = indexedAtoms.count.toInt
 
-    //add self loops to matrix
-    val selfLoops = indexedAtoms.map{case (a,id) => (id.toInt,(id.toInt,1.0))}
-
-    val nggc = new NGramGraphCreator(3,3)
-    val gsc = new GraphSimilarityCalculator
-
-    var similarities = Array.empty[(Int,(Int,Double))]
-
-    var next = 1
-    //compare all sentences between them and create similarity matrix
-    idxSentenceArray.foreach{ case (a,id) =>
-      val curE = new StringEntity
-      curE.fromString(sc, a.dataStream, 1)
-      val curG = nggc.getGraph(curE)
-      curG.cache
-      for (i <- next to numSentences-1) {
-        val e = new StringEntity
-        e.fromString(sc, idxSentenceArray(i)._1.dataStream, 1)
-        val g = nggc.getGraph(e)
-        val gs = gsc.getSimilarity(g, curG)
-        similarities ++= Array((id.toInt,(idxSentenceArray(i)._2.toInt,gs.getSimilarityComponents("normalized"))))
-      }
-      curG.unpersist()
-      next += 1
+    //compare all possible pairs of sentences
+    val similarities = indexedAtoms.cartesian(indexedAtoms)
+      //remove duplicate combinations
+      .filter{case (a,b) => a._2 >= b._2}
+      //compare graphs of sentences
+      .map{case (a,b) =>
+        val ngc = new NGramCachedGraphComparator
+        val g1 = new DocumentNGramSymWinGraph(3,3,3)
+        g1.setDataString(a._1.dataStream)
+        val g2 = new DocumentNGramSymWinGraph(3,3,3)
+        g2.setDataString(b._1.dataStream)
+        val gs = ngc.getSimilarityBetween(g1,g2)
+        val nvs = gs.ValueSimilarity/gs.SizeSimilarity
+        (a._2.toInt,(b._2.toInt,nvs))
     }
 
     //convert to indexed row matrix
-    val indexedRows = sc.parallelize(similarities, numPartitions).union(selfLoops)
+    val indexedRows = similarities.partitionBy(new HashPartitioner(numPartitions))
       .groupByKey
       .map(e => IndexedRow(e._1, Vectors.sparse(numSentences, e._2.toSeq)))
     new IndexedRowMatrix(indexedRows)

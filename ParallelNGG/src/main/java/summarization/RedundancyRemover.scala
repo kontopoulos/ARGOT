@@ -1,3 +1,5 @@
+import gr.demokritos.iit.jinsect.documentModel.comparators.NGramCachedGraphComparator
+import gr.demokritos.iit.jinsect.documentModel.representations.DocumentNGramSymWinGraph
 import org.apache.spark.SparkContext
 
 /**
@@ -5,6 +7,7 @@ import org.apache.spark.SparkContext
   */
 class RedundancyRemover(sc: SparkContext) extends SentenceFilter {
 
+  // TODO better algorithm for removing redundant sentences
   /**
     * Removes redundant sentences based on the
     * normalized value similarity between them
@@ -12,8 +15,7 @@ class RedundancyRemover(sc: SparkContext) extends SentenceFilter {
     * @return the trimmed array of sentences
     */
   override def getFilteredSentences(sentences: Array[String]): Array[String] = {
-    val nggc = new NGramGraphCreator(3,3)
-    val gsc = new GraphSimilarityCalculator
+    val ngc = new NGramCachedGraphComparator
 
     //variable that holds the sentences that should not enter the trimmed array
     var badSentences = Array.empty[String]
@@ -25,22 +27,19 @@ class RedundancyRemover(sc: SparkContext) extends SentenceFilter {
     sentences.foreach{s =>
       if (!badSentences.contains(s)) {
         trimmedSentences :+= s
-        val curE = new StringEntity
-        curE.fromString(sc,s,1)
-        val curG = nggc.getGraph(curE)
-        curG.cache
+        val curG = new DocumentNGramSymWinGraph(3,3,3)
+        curG.setDataString(s)
         for (i <- next to numSentences-1) {
           val curS = sentences(i)
-          val e = new StringEntity
-          e.fromString(sc,curS,1)
-          val g = nggc.getGraph(e)
-          val nvs = gsc.getSimilarity(g,curG).getSimilarityComponents("normalized")
+          val g = new DocumentNGramSymWinGraph(3,3,3)
+          g.setDataString(curS)
+          val gs = ngc.getSimilarityBetween(g,curG)
+          val nvs = gs.ValueSimilarity/gs.SizeSimilarity
           //if similarity over threshold, it means the sentence contains repeated information
           if (nvs > 0.2) {
             badSentences :+= curS
           }
         }
-        curG.unpersist()
       }
       next += 1
     }

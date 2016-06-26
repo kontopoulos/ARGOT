@@ -8,6 +8,7 @@ import org.apache.spark.rdd.RDD
   */
 class OpenNLPSentenceSplitter(val modelFile: String) extends SentenceSplitter with Serializable {
 
+// TODO better extraction of sentences between partitions
   /**
     * Given an entity return an RDD containing its sentences
     * @param e entity to segment into sentences
@@ -34,6 +35,7 @@ class OpenNLPSentenceSplitter(val modelFile: String) extends SentenceSplitter wi
       .flatMap(text => getDetectedSentences(text))
     //we union the good sentences with the partitioned ones and take the distinct
     goodSplits.union(badSplits).distinct.map(s => new StringAtom(s.hashCode, s))
+    badSentences.map(s => new StringAtom(s.hashCode,s))
   }
 
   /**
