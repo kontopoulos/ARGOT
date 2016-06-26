@@ -121,7 +121,6 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
       eventEssence = mo.getResult(eventEssence, subtopics(i))
     }
     eventEssence.cache
-    eventEssence.edges.count
 
     println("Comparing each sentence to the essence...")
     //compare each sentence to the merged graph
