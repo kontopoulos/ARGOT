@@ -151,6 +151,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     println("Reading complete.")
     var fs = Array.empty[Double]
     var f = 0.0
+    //numFold - 1
     for (j <- 0 to numFold-1) {
       val metrics = naiveBayesFoldValidation(j, files1, files2)
       f += metrics
@@ -203,18 +204,25 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     e2.fromFile(sc, training1(1), numPartitions)
     val g2 = nggc.getGraph(e2)
     var classGraph1 = m.getResult(g1, g2)
-    for (i <- 2 to training1.length-1) {
+    // merge half of the training set
+    for (i <- 2 to training1.length/2) {
       val e = new StringEntity
       e.fromFile(sc, training1(i), numPartitions)
       val g = nggc.getGraph(e)
-      if (i % 30 == 0) {
+      /*if (i % 30 == 0) {
         //materialize and store for future use
         classGraph1.edges.distinct.cache
         classGraph1.edges.distinct.count
         //every 30 iterations cut the lineage, due to long iteration
         classGraph1 = Graph(classGraph1.vertices.distinct, classGraph1.edges.distinct)
+      }*/
+      classGraph1 = m.getResult(classGraph1, g).persist()
+      //classGraph1.persist()
+      if (i % 30 == 0) {
+        classGraph1.edges.distinct.checkpoint
       }
-      classGraph1 = m.getResult(classGraph1, g)
+      classGraph1.edges.distinct.count
+      classGraph1.edges.distinct.unpersist()
     }
     //merge graphs from second training set to a class graph
     val e3 = new StringEntity
@@ -224,22 +232,29 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     e4.fromFile(sc, training2(1), numPartitions)
     val g4 = nggc.getGraph(e4)
     var classGraph2 = m.getResult(g3, g4)
-    for (i <- 2 to training2.length-1) {
+    // merge half of the training set
+    for (i <- 2 to training2.length/2) {
       val e = new StringEntity
       e.fromFile(sc, training2(i), numPartitions)
       val g = nggc.getGraph(e)
-      if (i % 30 == 0) {
+      /*if (i % 30 == 0) {
         //materialize and store for future use
         classGraph2.edges.distinct.cache
         classGraph2.edges.distinct.count
         //every 30 iterations cut the lineage, due to long iteration
         classGraph2 = Graph(classGraph2.vertices.distinct, classGraph2.edges.distinct)
+      }*/
+      classGraph2 = m.getResult(classGraph2, g).persist()
+      //classGraph1.persist()
+      if (i % 30 == 0) {
+        classGraph2.edges.distinct.checkpoint
       }
-      classGraph2 = m.getResult(classGraph2, g)
+      classGraph2.edges.distinct.count
+      classGraph2.edges.distinct.unpersist()
     }
     //store edges for future use
-    classGraph1.edges.distinct.cache
-    classGraph2.edges.distinct.cache
+//    classGraph1.edges.distinct.cache
+//    classGraph2.edges.distinct.cache
     println("Lineage complete.")
     //start training
     println("Creating feature vectors...")
