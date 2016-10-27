@@ -22,10 +22,6 @@ class SVMClassifier extends ModelClassifier {
 
   /**
     * Classifies test set based on classification model
-    * F-measure is only returned because recall equals
-    * to precision for multiclass classifier because sum
-    * of all false positives is equal to sum of all false negatives
-    * and f-measure equals to precision and recall because precision equals recall
     * @param model trained model
     * @param testset labeled points to classify
     * @return f-measure
@@ -36,7 +32,7 @@ class SVMClassifier extends ModelClassifier {
     val predictionAndLabels = testset.map(point => (trainedModel.predict(point.features), point.label))
     //get evaluation metrics.
     val metrics = new MulticlassMetrics(predictionAndLabels)
-    metrics.fMeasure
+    metrics.weightedFMeasure
   }
 
 }

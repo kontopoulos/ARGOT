@@ -8,7 +8,7 @@ trait CustomClassifier {
 
   val sc: SparkContext
 
-  def train(trainset: Array[String]): Graph[String, Double]
+  def train(trainset: Array[Graph[String, Double]]): Graph[String, Double]
 
   def test(f: String, graphs: Array[Graph[String, Double]]): Array[String]
 

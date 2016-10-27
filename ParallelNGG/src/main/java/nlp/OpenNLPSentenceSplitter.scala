@@ -15,7 +15,7 @@ class OpenNLPSentenceSplitter(val modelFile: String) extends SentenceSplitter wi
     * @return rdd of sentences
     */
   override def getSentences(e: Entity): RDD[Atom] = {
-    val en = e.asInstanceOf[StringEntity]
+    val en = e.asInstanceOf[DistributedStringEntity]
     //split string of each partition to sentences
     val badSentences = en.getPayload.glom.map(_.mkString(" ").replaceAll(" +", " "))
       .flatMap(text => getDetectedSentences(text))

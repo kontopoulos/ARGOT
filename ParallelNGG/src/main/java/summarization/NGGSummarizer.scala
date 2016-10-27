@@ -59,7 +59,7 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     println("Extracting sentences...")
     //extract the sentences of the event
     documents.foreach{d =>
-      val e = new StringEntity
+      val e = new DistributedStringEntity
       e.fromFile(sc, d, numPartitions)
       val s = ss.getSentences(e).asInstanceOf[RDD[StringAtom]]
       sentences = sentences ++ s.collect
@@ -87,23 +87,23 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     //intersect the graph sentences of a cluster to create subtopics
     var subtopics = Array.empty[Graph[String,Double]]
     val io = new IntersectOperator(0.5)
-    val nggc = new NGramGraphCreator(3,3)
+    val nggc = new NGramGraphCreator(sc,3,3)
 
     println("Extracting subtopics...")
     sentenceClusters.collect.groupBy(_._1).mapValues(_.map(_._2)).foreach{ case (key,value) =>
       val eFirst = new StringEntity
-      eFirst.fromString(sc,value.head.dataStream,1)
-      var intersected = nggc.getGraph(eFirst)
+      eFirst.setDataString(value.head.dataStream)
+      var intersected = nggc.getGraph(eFirst,numPartitions)
       //intersect current graph to all the next ones
       for (i <- 1 to value.length-1) {
         val curE = new StringEntity
-        curE.fromString(sc,value(i).dataStream,1)
+        curE.setDataString(value(i).dataStream)
         if (i % 20 == 0) {
           intersected.cache
           if (toCheckpoint) intersected.checkpoint
           intersected.edges.count
         }
-        intersected = io.getResult(nggc.getGraph(curE),intersected)
+        intersected = io.getResult(nggc.getGraph(curE,numPartitions),intersected)
       }
       subtopics :+= Graph.fromEdges(intersected.edges.repartition(numPartitions),"subtopic")
     }
@@ -128,8 +128,8 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
     val gsc = new GraphSimilarityCalculator
     indexedSentences.map(_._1.dataStream).collect.foreach{s =>
       val curE = new StringEntity
-      curE.fromString(sc,s,1)
-      val gs = gsc.getSimilarity(nggc.getGraph(curE),eventEssence)
+      curE.setDataString(s)
+      val gs = gsc.getSimilarity(nggc.getGraph(curE,numPartitions),eventEssence)
       sentencesToFilter :+= (gs.getSimilarityComponents("value"),s)
     }
     eventEssence.unpersist()

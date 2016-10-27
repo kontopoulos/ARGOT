@@ -11,7 +11,7 @@ class StringEntityTokenizer extends EntityTokenizer with Serializable {
     * @return rdd of words
     */
   override def getTokens(e: Entity): RDD[Atom] = {
-    val en = e.asInstanceOf[StringEntity]
+    val en = e.asInstanceOf[DistributedStringEntity]
     val tokens: RDD[Atom] = en.getPayload
       //split each line by spaces
       .flatMap(line => line.split(" "))
@@ -36,7 +36,7 @@ class StringEntityTokenizer extends EntityTokenizer with Serializable {
     * @return array of string atoms
     */
   def getCharacterNGrams(e: Entity, ngram: Int): RDD[Atom] = {
-    val en = e.asInstanceOf[StringEntity]
+    val en = e.asInstanceOf[DistributedStringEntity]
     en.getPayload.mapPartitions(_.toList.mkString(" ").sliding(ngram))
       .map(atom => new StringAtom(("_" + atom).hashCode, "_" + atom))
   }

@@ -10,7 +10,7 @@ import org.apache.spark.rdd.RDD
 class NGramGraphStorage(val sc: SparkContext, val numPartitions: Int) extends GraphStorage {
 
   /**
-   * Save vertices ans edges of graph to files
+   * Save vertices and edges of graph to files
    * @param g graph to save
    * @param label label of saved graph
    */
@@ -26,7 +26,7 @@ class NGramGraphStorage(val sc: SparkContext, val numPartitions: Int) extends Gr
       //partRdd contains all values from a single partition
       partRdd.collect.foreach{ e =>
         try {
-          ew.write(e.srcId + "<>" + e.dstId + "<>" + e.attr + "\n")
+          ew.write(e.srcId + "|" + e.dstId + "|" + e.attr + "\n")
         }
         catch {
           case ex: Exception => {
@@ -48,7 +48,7 @@ class NGramGraphStorage(val sc: SparkContext, val numPartitions: Int) extends Gr
       //partRdd contains all values from a single partition
       partRdd.collect.foreach{ v =>
         try {
-          vw.write(v._1 + "<>" + v._2 + "\n")
+          vw.write(v._1 + "|" + v._2 + "\n")
         }
         catch {
           case ex: Exception => {
@@ -59,6 +59,30 @@ class NGramGraphStorage(val sc: SparkContext, val numPartitions: Int) extends Gr
     }
     //close file
     vw.close
+  }
+
+  def save(g: Graph[String, Double], label: String): Unit = {
+    val edgeFile = label + "edges.txt"
+    val vertexFile = label + "vertices.txt"
+
+    try {
+      val edges = g.edges.distinct.collect
+      val vertices = g.vertices.distinct.collect
+
+      val we = new FileWriter(edgeFile, true)
+      we.write(edges.map { e => e.srcId + "|" + e.dstId + "|" + e.attr }.mkString("\n"))
+      we.close
+
+      val wv = new FileWriter(vertexFile, true)
+      wv.write(vertices.map { v => v._1 + "|" + v._2 }.mkString("\n"))
+      wv.close
+    }
+    catch {
+      case e: Exception =>
+            val er = new FileWriter("save_errors.log",true)
+            er.write(e.getMessage + "\n" + e.getStackTrace.mkString("\n"))
+            er.close
+    }
   }
 
   /**
@@ -73,12 +97,12 @@ class NGramGraphStorage(val sc: SparkContext, val numPartitions: Int) extends Gr
     val edgeFile = label + "edges.txt"
     //create EdgeRDD from file rows
     val edges: RDD[Edge[Double]] = sc.textFile(edgeFile, numPartitions).map{ line =>
-      val row = line.split("<>")
+      val row = line.split("|")
       Edge(row(0).toLong, row(1).toLong, row(2).toDouble)
     }
     //create VertexRDD from file rows
     val vertices: RDD[(Long, String)] = sc.textFile(vertexFile, numPartitions).map{ line =>
-      val row = line.split("<>")
+      val row = line.split("|")
       (row(0).toLong, row(1))
     }
     //create graph

@@ -1,34 +1,19 @@
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
-
 /**
  * @author Kontopoulos Ioannis
  */
 class StringEntity extends Entity {
 
-  //RDD containing the lines of a text file
-  private var dataStringRDD: RDD[String] = null
+  // data string
+  private var dataString = ""
 
-  def getPayload = dataStringRDD
+  override def getPayload = dataString
 
-  /**
-    * Reads dataString from a string
-    * @param sc SparkContext
-    * @param data string
-    * @param numPartitions number of partitions
-    */
-  def fromString(sc: SparkContext, data: String, numPartitions: Int) = {
-    dataStringRDD = sc.parallelize(Seq(data), numPartitions)
+  def fromFile(f: String): Unit = {
+    dataString = scala.io.Source.fromFile(f).mkString
   }
 
-  /**
-    * Reads dataString from a file
-    * @param sc SparkContext
-    * @param file file to read
-    * @param numPartitions number of partitions
-    */
-  def fromFile(sc: SparkContext, file: String, numPartitions: Int) = {
-    dataStringRDD = sc.textFile(file, numPartitions)
+  def setDataString(data: String): Unit = {
+    dataString = data
   }
 
 }

@@ -4,7 +4,7 @@ import org.apache.spark.graphx.Graph
 /**
  * @author Kontopoulos Ioannis
  */
-class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val numFold: Int) extends Experiment {
+class nFoldCrossValidation(val sc: SparkContext, numPartitions: Int, numFold: Int) extends Experiment {
 
   /**
    * Runs the n-fold cross validation
@@ -14,9 +14,9 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
    */
   def run(classifier: String) = {
     println("Classifier Selected: " + classifier)
-    if (classifier == "SVM") runSVM
-    else if (classifier == "NaiveBayes") runNaiveBayes
-    else if (classifier == "simple") runSimple
+    //if (classifier == "SVM") runSVM
+    if (classifier == "NaiveBayes") runNaiveBayes
+    //else if (classifier == "simple") runSimple
     else println("Wrong Option!")
   }
 
@@ -25,7 +25,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
    * Support Vector Machines
    * with Stochastic Gradient Descent Classifier
    */
-  private def runSVM() = {
+  /*private def runSVM() = {
     println("Reading files...")
     val files1 = new java.io.File("C01/").listFiles.map( f => f.getAbsolutePath).toList.toArray
     val files2 = new java.io.File("C02/").listFiles.map( f => f.getAbsolutePath).toList.toArray
@@ -138,7 +138,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     println("Fold Completed = " + (currentFold+1))
     println("===========================")
     metrics
-  }
+  }*/
 
   /**
    * Run the n-fold cross validation
@@ -152,7 +152,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     var fs = Array.empty[Double]
     var f = 0.0
     //numFold - 1
-    for (j <- 0 to numFold-1) {
+    for (j <- 0 to 0) {
       val metrics = naiveBayesFoldValidation(j, files1, files2)
       f += metrics
       fs :+= metrics
@@ -178,7 +178,6 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
   /**
    * Calculates precision, recall, accuracy and f-measure
    * of current fold using Naive Bayes Classifier
- *
    * @param currentFold fold to validate
    * @param files1 array of files of first category
    * @param files2 array of files of second category
@@ -193,79 +192,57 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     val testing2 = files2.slice(currentFold, currentFold+files2.length/numFold)
     val training2 = files2.slice(0, currentFold) ++ files2.slice(currentFold+files2.size/numFold, files2.length)
     println("Separation complete.")
-    println("Creating merging lineage...")
-    val nggc = new NGramGraphCreator(3, 3)
-    val m = new MergeOperator(0.5)
+    println("Merging graphs...")
+    val nggc = new NGramGraphCreator(sc,3, 3)
+    val mo = new MultiGraphMergeOperator(sc,numPartitions)
     //merge graphs from first training set to a class graph
-    val e1 = new StringEntity
-    e1.fromFile(sc, training1.head, numPartitions)
-    val g1 = nggc.getGraph(e1)
-    val e2 = new StringEntity
-    e2.fromFile(sc, training1(1), numPartitions)
-    val g2 = nggc.getGraph(e2)
-    var classGraph1 = m.getResult(g1, g2)
-    // merge half of the training set
-    for (i <- 2 to training1.length/2) {
-      val e = new StringEntity
-      e.fromFile(sc, training1(i), numPartitions)
-      val g = nggc.getGraph(e)
-      /*if (i % 30 == 0) {
-        //materialize and store for future use
-        classGraph1.edges.distinct.cache
-        classGraph1.edges.distinct.count
-        //every 30 iterations cut the lineage, due to long iteration
-        classGraph1 = Graph(classGraph1.vertices.distinct, classGraph1.edges.distinct)
-      }*/
-      classGraph1 = m.getResult(classGraph1, g).persist()
-      //classGraph1.persist()
-      if (i % 30 == 0) {
-        classGraph1.edges.distinct.checkpoint
-      }
-      classGraph1.edges.distinct.count
-      classGraph1.edges.distinct.unpersist()
+    val firstGraphSet = training1.map{
+      s =>
+        val e = new StringEntity
+        e.setDataString(s)
+        nggc.getGraph(e,numPartitions)
     }
+    val firstTrainingGraphs = firstGraphSet.slice(1,training1.length/2).toSeq
+    val classGraph1 = mo.getResult(firstTrainingGraphs)
+    classGraph1.edges.cache
+
     //merge graphs from second training set to a class graph
-    val e3 = new StringEntity
-    e3.fromFile(sc, training2.head, numPartitions)
-    val g3 = nggc.getGraph(e3)
-    val e4 = new StringEntity
-    e4.fromFile(sc, training2(1), numPartitions)
-    val g4 = nggc.getGraph(e4)
-    var classGraph2 = m.getResult(g3, g4)
-    // merge half of the training set
-    for (i <- 2 to training2.length/2) {
-      val e = new StringEntity
-      e.fromFile(sc, training2(i), numPartitions)
-      val g = nggc.getGraph(e)
-      /*if (i % 30 == 0) {
-        //materialize and store for future use
-        classGraph2.edges.distinct.cache
-        classGraph2.edges.distinct.count
-        //every 30 iterations cut the lineage, due to long iteration
-        classGraph2 = Graph(classGraph2.vertices.distinct, classGraph2.edges.distinct)
-      }*/
-      classGraph2 = m.getResult(classGraph2, g).persist()
-      //classGraph1.persist()
-      if (i % 30 == 0) {
-        classGraph2.edges.distinct.checkpoint
-      }
-      classGraph2.edges.distinct.count
-      classGraph2.edges.distinct.unpersist()
+    val secondGraphSet = training2.map{
+      s =>
+        val e = new StringEntity
+        e.setDataString(s)
+        nggc.getGraph(e,numPartitions)
     }
-    //store edges for future use
-//    classGraph1.edges.distinct.cache
-//    classGraph2.edges.distinct.cache
-    println("Lineage complete.")
+    val secondTrainingGraphs = secondGraphSet.slice(1,training2.length/2).toSeq
+    val classGraph2 = mo.getResult(secondTrainingGraphs)
+    classGraph2.edges.cache
+
+
+
+    println("Merging complete.")
     //start training
     println("Creating feature vectors...")
     val cls = new NaiveBayesExperiment(sc, numPartitions)
-    val model = cls.train(Array(classGraph1, classGraph2), training1, training2)
+    val model = cls.train(Array(classGraph1, classGraph2), firstGraphSet, secondGraphSet)
+
+    val firstTestSet = testing1.map{
+      s =>
+        val e = new StringEntity
+        e.setDataString(s)
+        nggc.getGraph(e,numPartitions)
+    }
+    val secondTestSet = testing2.map{
+      s =>
+        val e = new StringEntity
+        e.setDataString(s)
+        nggc.getGraph(e,numPartitions)
+    }
     //start testing
     println("Testing...")
-    val metrics = cls.test(model, Array(classGraph1, classGraph2), testing1, testing2)
+    val metrics = cls.test(model, Array(classGraph1, classGraph2), firstTestSet, secondTestSet)
     //free memory of stored edges
-    classGraph1.edges.distinct.unpersist()
-    classGraph2.edges.distinct.unpersist()
+    classGraph1.edges.unpersist()
+    classGraph2.edges.unpersist()
     println("Testing complete")
     println("===========================")
     println("Fold Completed = " + (currentFold+1))
@@ -277,7 +254,7 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
    * Run the n-fold cross validation
    * using the simple classifier
    */
-  private def runSimple() = {
+  /*private def runSimple() = {
     println("Reading files...")
     val files1 = new java.io.File("C01/").listFiles.map( f => f.getAbsolutePath).toList.toArray
     val files2 = new java.io.File("C02/").listFiles.map( f => f.getAbsolutePath).toList.toArray
@@ -428,6 +405,6 @@ class nFoldCrossValidation(val sc: SparkContext, val numPartitions: Int, val num
     println("===================================")
     val metrics = Map("precision" -> precision, "recall" -> recall, "accuracy" -> accuracy, "fmeasure" -> fmeasure)
     metrics
-  }
+  }*/
 
 }

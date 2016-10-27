@@ -13,32 +13,23 @@ class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
   /**
    * Creates Support Vector Machines with Stochastic Gradient Descent Model based on labeled points from training sets
    * Each labeled point consists of a label and a feature vector
- *
    * @param classGraphs list of graphs containing the class graphs
-   * @param files array containing files of the training set
+   * @param graphs array containing graphs of the training set
    * @return training model
    */
-  def train(classGraphs: Array[Graph[String, Double]], files: Array[String]*): SVMModel = {
+  def train(classGraphs: Array[Graph[String, Double]], graphs: Array[Graph[String, Double]]*): SVMModel = {
     //labelsAndFeatures holds the labeled points for the training model
     var labelsAndFeatures = Array.empty[LabeledPoint]
-    //create proper instances for graph creation and similarity calculation
-    val nggc = new NGramGraphCreator(3, 3)
     val gsc = new GraphSimilarityCalculator
     //create labeled points from first category
-    files.head.foreach{ f =>
-      val e = new StringEntity
-      e.fromFile(sc, f, numPartitions)
-      val g = nggc.getGraph(e)
+    graphs.head.foreach{ g =>
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
       //vector space consists of value, containment and normalized value similarity
       labelsAndFeatures ++= Array(LabeledPoint(0.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
     //create labeled points from second category
-    files(1).foreach{ f =>
-      val e = new StringEntity
-      e.fromFile(sc, f, numPartitions)
-      val g = nggc.getGraph(e)
+    graphs(1).foreach{ g =>
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
       //vector space consists of value, containment and normalized value similarity
@@ -52,34 +43,25 @@ class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
 
   /**
    * Creates labeled points from testing sets and test them with the model provided
- *
    * @param model classification model
    * @param classGraphs list of graphs containing the class graphs
-   * @param files array containing files of the training set
+   * @param graphs array containing graphs of the training set
    * @return map with evaluation metrics
    */
-  def test(model: ClassificationModel, classGraphs: Array[Graph[String, Double]], files: Array[String]*): Double = {
+  def test(model: ClassificationModel, classGraphs: Array[Graph[String, Double]], graphs: Array[Graph[String, Double]]*): Double = {
     val trainedModel = model.asInstanceOf[SVMModel]
     //labelsAndFeatures holds the labeled points from the testing set
     var labelsAndFeatures = Array.empty[LabeledPoint]
-    //create proper instances for graph creation and similarity calculation
-    val nggc = new NGramGraphCreator(3, 3)
     val gsc = new GraphSimilarityCalculator
     //create labeled points from first category
-    files.head.foreach{ f =>
-      val e = new StringEntity
-      e.fromFile(sc, f, numPartitions)
-      val g = nggc.getGraph(e)
+    graphs.head.foreach{ g =>
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
       //vector space consists of value, containment and normalized value similarity
       labelsAndFeatures ++= Array(LabeledPoint(0.0, Vectors.dense(gs1.getSimilarityComponents("containment"), gs2.getSimilarityComponents("containment"), gs1.getSimilarityComponents("value"), gs2.getSimilarityComponents("value"), gs1.getSimilarityComponents("normalized"), gs2.getSimilarityComponents("normalized"))))
     }
     //create labeled points from second category
-    files(1).foreach{ f =>
-      val e = new StringEntity
-      e.fromFile(sc, f, numPartitions)
-      val g = nggc.getGraph(e)
+    graphs(1).foreach{ g =>
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
       val gs2 = gsc.getSimilarity(g, classGraphs(1))
       //vector space consists of value, containment and normalized value similarity

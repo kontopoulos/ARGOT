@@ -11,7 +11,7 @@ class WordNGramGraphCreator(val ngram: Int, val dwin: Int) extends GraphCreator 
     * @param e entity from which a graph will be created
     * @return word n-gram graph from entity
     */
-  override def getGraph(e: Entity): Graph[String, Double] = {
+  override def getGraph(e: Entity, numPartitions: Int): Graph[String, Double] = {
     val tokenizer = new StringEntityTokenizer
     //create vertices based on ngram size
     val atoms = tokenizer.getCapWordNGrams(e, ngram)
@@ -32,9 +32,9 @@ class WordNGramGraphCreator(val ngram: Int, val dwin: Int) extends GraphCreator 
     //create vertex RDD from vertices array
     val edgeRDD: RDD[Edge[Double]] = sc.parallelize(edges, numPartitions)
     //create graph from vertices and edges arrays, erase duplicate edges and increase occurrence
-    val graph: Graph[String, Double] = Graph(atoms.distinct, edgeRDD).partitionBy(PartitionStrategy.EdgePartition2D).groupEdges( (a, b) => a + b )
-    //return graph
-    graph
+    Graph(atoms.distinct, edgeRDD)
+      .partitionBy(PartitionStrategy.EdgePartition2D)
+      .groupEdges( (a, b) => a + b )
   }
 
 }

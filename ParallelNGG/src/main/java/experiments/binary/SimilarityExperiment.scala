@@ -8,49 +8,25 @@ class SimilarityExperiment(val sc: SparkContext, val numPartitions: Int) extends
 
   /**
    * Train the system based on a dataset
- *
-   * @param trainset array of files
+   * @param trainset array of graphs
    * @return class graph
    */
-  override def train(trainset: Array[String]): Graph[String, Double] = {
-    val nggc = new NGramGraphCreator(3, 3)
-    val m = new MergeOperator(0.5)
-    val e1 = new StringEntity
-    e1.fromFile(sc, trainset.head, numPartitions)
-    val e2 = new StringEntity
-    e2.fromFile(sc, trainset(1), numPartitions)
-    val g1 = nggc.getGraph(e1)
-    val g2 = nggc.getGraph(e2)
-    var merged = m.getResult(g1, g2)
-    for (i <- 2 to trainset.length-1) {
-      val e = new StringEntity
-      e.fromFile(sc, trainset(i), numPartitions)
-      val g = nggc.getGraph(e)
-      if (i % 30 == 0) {
-        //materialize and store for future use
-        merged.edges.distinct.cache
-        //merged.edges.distinct.checkpoint
-        merged.edges.distinct.count
-        //every 30 iterations cut the lineage, due to long iteration
-        merged = Graph(merged.vertices.distinct, merged.edges.distinct)
-      }
-      merged = m.getResult(merged, g)
-    }
-    merged
+  override def train(trainset: Array[Graph[String, Double]]): Graph[String, Double] = {
+    val mo = new MultiGraphMergeOperator(sc,numPartitions)
+    mo.getResult(trainset)
   }
 
   /**
    * Tests current document with class graphs
- *
    * @param f document to be tested
    * @param graphs list of class graphs
    * @return list of labels
    */
   override def test(f: String, graphs: Array[Graph[String, Double]]): Array[String] = {
-    val nggc = new NGramGraphCreator(3, 3)
+    val nggc = new NGramGraphCreator(sc,3, 3)
     val e = new StringEntity
-    e.fromFile(sc, f, numPartitions)
-    val testGraph = nggc.getGraph(e)
+    e.fromFile(f)
+    val testGraph = nggc.getGraph(e,numPartitions)
     val gsc = new GraphSimilarityCalculator
     //taking into account the sum of value, normalized value and containment similarities in every case
     //test with first class

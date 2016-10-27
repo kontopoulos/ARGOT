@@ -20,9 +20,9 @@ class GraphSimilarityCalculator extends SimilarityCalculator with Serializable {
     //calculate size similarity
     val sSimil = Math.min(g1EdgeCount, g2EdgeCount).toDouble/Math.max(g1EdgeCount, g2EdgeCount)
     //pair edges so the common edges are the ones with same vertices pair
-    def edgeToPair (e: Edge[Double]) = ((e.srcId, e.dstId), e.attr)
-    val pairs1 = g1.edges.map(edgeToPair).partitionBy(new HashPartitioner(g1.edges.getNumPartitions))
-    val pairs2 = g2.edges.map(edgeToPair)
+    val pairs1 = g1.edges.map(e => ((e.srcId, e.dstId), e.attr))
+      .partitionBy(new HashPartitioner(g1.edges.getNumPartitions))
+    val pairs2 = g2.edges.map(e => ((e.srcId, e.dstId), e.attr))
     val commonEdges = pairs1.join(pairs2)
     commonEdges.cache
     //c holds the number of common edges

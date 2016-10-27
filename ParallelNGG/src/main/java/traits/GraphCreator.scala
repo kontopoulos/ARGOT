@@ -5,6 +5,6 @@ import org.apache.spark.graphx.Graph
  */
 trait GraphCreator {
 
-  def getGraph(e: Entity): Graph[String, Double]
+  def getGraph(e: Entity, numPartitions: Int): Graph[String, Double]
 
 }
