@@ -86,40 +86,25 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoi
 
     //intersect the graph sentences of a cluster to create subtopics
     var subtopics = Array.empty[Graph[String,Double]]
-    val io = new IntersectOperator(0.5)
+    val io = new MultiGraphIntersectOperator
     val nggc = new NGramGraphCreator(sc,3,3)
 
     println("Extracting subtopics...")
     sentenceClusters.collect.groupBy(_._1).mapValues(_.map(_._2)).foreach{ case (key,value) =>
-      val eFirst = new StringEntity
-      eFirst.setDataString(value.head.dataStream)
-      var intersected = nggc.getGraph(eFirst,numPartitions)
-      //intersect current graph to all the next ones
-      for (i <- 1 to value.length-1) {
-        val curE = new StringEntity
-        curE.setDataString(value(i).dataStream)
-        if (i % 20 == 0) {
-          intersected.cache
-          if (toCheckpoint) intersected.checkpoint
-          intersected.edges.count
-        }
-        intersected = io.getResult(nggc.getGraph(curE,numPartitions),intersected)
-      }
-      subtopics :+= Graph.fromEdges(intersected.edges.repartition(numPartitions),"subtopic")
+      val graphs = value.map{
+        a =>
+          val e = new StringEntity
+          e.setDataString(a.dataStream)
+          nggc.getGraph(e,numPartitions)
+      }.toSeq
+      subtopics :+= io.getResult(graphs)
     }
 
     println("Creating the essence of the documents...")
     //merge the subtopic graphs to create the essence of the event
-    val mo = new MergeOperator(0.5)
-    var eventEssence = subtopics.head
-    for (i <- 1 to subtopics.length-1) {
-      if (i % 20 == 0) {
-        eventEssence.cache
-        if (toCheckpoint) eventEssence.checkpoint
-        eventEssence.edges.count
-      }
-      eventEssence = mo.getResult(eventEssence, subtopics(i))
-    }
+    val mo = new MultiGraphMergeOperator(sc,numPartitions)
+
+    val eventEssence = mo.getResult(subtopics)
     eventEssence.cache
 
     println("Comparing each sentence to the essence...")

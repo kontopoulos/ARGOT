@@ -16,7 +16,6 @@ object Starter {
       .registerKryoClasses(Array(classOf[MergeOperator], classOf[IntersectOperator], classOf[InverseIntersectOperator], classOf[DeltaOperator], classOf[GraphSimilarityCalculator], classOf[StringEntityTokenizer], classOf[OpenNLPSentenceSplitter], classOf[MatrixMCL]))
       .set("spark.executor.memory", "48g")
     val sc = new SparkContext(conf)
-    //sc.setCheckpointDir("checkpoints/")
 
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("akka").setLevel(Level.OFF)
