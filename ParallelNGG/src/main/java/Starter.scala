@@ -44,7 +44,7 @@ object Starter {
 
 
 
-    /*val sum = new NGGSummarizer(sc, numPartitions, false)
+    /*val sum = new NGGSummarizer(sc, numPartitions)
     val summaries = sum.getSummary("corpora")
 
     sum.saveSummaries(summaries)*/

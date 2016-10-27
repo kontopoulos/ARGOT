@@ -10,10 +10,8 @@ import org.apache.spark.rdd.RDD
 
 /**
   * @author Kontopoulos Ioannis
-  * If there is an hdfs or nfs compatible file system on the cluster set the third parameter to true
-  * when true it temporarily stores the lineage of large graphs
   */
-class NGGSummarizer(val sc: SparkContext, val numPartitions: Int, val toCheckpoint: Boolean) extends MultiDocumentSummarizer {
+class NGGSummarizer(val sc: SparkContext, val numPartitions: Int) extends MultiDocumentSummarizer {
 
   /**
     * Clusters multiple documents and creates a summary per cluster
