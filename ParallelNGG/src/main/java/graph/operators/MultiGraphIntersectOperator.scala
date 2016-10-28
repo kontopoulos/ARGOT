@@ -16,7 +16,7 @@ class MultiGraphIntersectOperator(numPartitions: Int) extends NaryOperator {
     // map graphs to their edges with additional 1 for counting
     val intersectedEdges = graphs.map(_.edges.map(e => ((e.srcId, e.dstId), (e.attr, 1))))
       // intersect graphs to each other
-      .reduce(
+      .reduceLeft(
         (x, y) =>
           // intersect two graphs
           x.join(y.partitionBy(new HashPartitioner(numPartitions)))
