@@ -1,9 +1,10 @@
+import org.apache.spark.HashPartitioner
 import org.apache.spark.graphx.{Edge, Graph}
 
 /**
   * @author Kontopoulos Ioannis
   */
-class MultiGraphIntersectOperator extends NaryOperator {
+class MultiGraphIntersectOperator(numPartitions: Int) extends NaryOperator {
 
   /**
     * Intersects multiple graphs into one
@@ -17,8 +18,10 @@ class MultiGraphIntersectOperator extends NaryOperator {
       // intersect graphs to each other
       .reduce(
         (x, y) =>
-          // intersect two graphs, sum the edge weights, sum the counter
-          x.join(y).mapValues(a => (a._1._1 + a._2._1, a._1._2 + a._2._2))
+          // intersect two graphs
+          x.join(y.partitionBy(new HashPartitioner(numPartitions)))
+            // sum the edge weights, sum the counter
+            .mapValues(a => (a._1._1 + a._2._1, a._1._2 + a._2._2))
       )
       // calculate the averaged edge weight
       .mapValues { case (sum, count) => sum / count }

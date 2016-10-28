@@ -84,7 +84,7 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int) extends MultiD
 
     //intersect the graph sentences of a cluster to create subtopics
     var subtopics = Array.empty[Graph[String,Double]]
-    val io = new MultiGraphIntersectOperator
+    val io = new MultiGraphIntersectOperator(numPartitions)
     val nggc = new NGramGraphCreator(sc,3,3)
 
     println("Extracting subtopics...")
