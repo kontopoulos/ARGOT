@@ -9,7 +9,8 @@
 - Import JInsect library ("https://sourceforge.net/projects/jinsect/")   
 
 #Examples of Basic Use
-//ideally number of partitions should be equal to the number of physical cores of your cluster  
+// ideally number of partitions should be equal to the number of physical cores of your cluster  
+// variable sc is the SparkContext  
 val numPartitions = 4 
 - Create n-gram graph from file  
 val e = new StringEntity  
@@ -40,9 +41,9 @@ gs.toString
 
 #Summarization
 val sum = new NGGSummarizer(sc,numPartitions)  
-//give a folder which contains the documents you need the summary from  
+// give a folder which contains the documents you need the summary from  
 val sums = sum.getSummary("folder")  
-//save summaries to files  
+// save summaries to files  
 sum.saveSummaries(sums)  
 
 For large datasets it is recommended to increase the driver`s memory from spark-env.sh file
