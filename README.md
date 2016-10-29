@@ -4,8 +4,8 @@
 - IntelliJ Project  
 
 #Specifications
-- Apache Spark 1.6.1 with Graphx and MLlib  
-- scala 2.10.4   
+- Apache Spark 2.0.1 with Graphx and MLlib  
+- scala 2.11.7   
 - Import JInsect library ("https://sourceforge.net/projects/jinsect/")   
 
 #Examples of Basic Use
@@ -13,8 +13,8 @@
 val numPartitions = 4 
 - Create n-gram graph from file  
 val e = new StringEntity  
-e.fromFile(sc, "file.txt", numPartitions)  
-val nggc = new NGramGraphCreator(3, 3)  
+e.fromFile("file.txt")  
+val nggc = new NGramGraphCreator(sc, 3, 3)  
 val ngg = nggc.getGraph(e)  
 - Merge two graphs (ngg1, ngg2)  
 val mo = new MergeOperator(0.5)  
@@ -39,9 +39,7 @@ gs.getSimilarityComponents("normalized")
 gs.toString  
 
 #Summarization
-//the boolean variable below indicates if there is a nfs or hdfs on your cluster  
-//set it to true if there is, in order to checkpoint the RDDs  
-val sum = new NGGSummarizer(sc,numPartitions,false)  
+val sum = new NGGSummarizer(sc,numPartitions)  
 //give a folder which contains the documents you need the summary from  
 val sums = sum.getSummary("folder")  
 //save summaries to files  
