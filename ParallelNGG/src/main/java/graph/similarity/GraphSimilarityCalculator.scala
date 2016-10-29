@@ -1,5 +1,5 @@
 import org.apache.spark.HashPartitioner
-import org.apache.spark.graphx.{Edge, Graph}
+import org.apache.spark.graphx.Graph
 
 /**
  * @author Kontopoulos Ioannis
