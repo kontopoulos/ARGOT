@@ -217,8 +217,6 @@ class nFoldCrossValidation(val sc: SparkContext, numPartitions: Int, numFold: In
     val classGraph2 = mo.getResult(secondTrainingGraphs)
     classGraph2.edges.cache
 
-
-
     println("Merging complete.")
     //start training
     println("Creating feature vectors...")
@@ -229,13 +227,13 @@ class nFoldCrossValidation(val sc: SparkContext, numPartitions: Int, numFold: In
       s =>
         val e = new StringEntity
         e.setDataString(s)
-        nggc.getGraph(e,numPartitions)
+        nggc.getGraph(e,1)
     }
     val secondTestSet = testing2.map{
       s =>
         val e = new StringEntity
         e.setDataString(s)
-        nggc.getGraph(e,numPartitions)
+        nggc.getGraph(e,1)
     }
     //start testing
     println("Testing...")

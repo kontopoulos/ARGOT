@@ -20,7 +20,7 @@ class NaiveBayesExperiment(val sc: SparkContext, val numPartitions: Int) {
   def train(classGraphs: Array[Graph[String, Double]], graphs: Array[Graph[String, Double]]*): NaiveBayesModel = {
     //labelsAndFeatures holds the labeled points for the training model
     var labelsAndFeatures = Array.empty[LabeledPoint]
-    val gsc = new GraphSimilarityCalculator
+    val gsc = new DiffSizeGSCalculator(sc)
     //create labeled points from first category
     graphs.head.foreach{ g =>
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
@@ -52,7 +52,7 @@ class NaiveBayesExperiment(val sc: SparkContext, val numPartitions: Int) {
     val trainedModel = model.asInstanceOf[NaiveBayesModel]
     //labelsAndFeatures holds the labeled points from the testing set
     var labelsAndFeatures = Array.empty[LabeledPoint]
-    val gsc = new GraphSimilarityCalculator
+    val gsc = new DiffSizeGSCalculator(sc)
     //create labeled points from first category
     graphs.head.foreach{ g =>
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
