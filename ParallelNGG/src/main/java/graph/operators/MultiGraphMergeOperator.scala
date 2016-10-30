@@ -15,8 +15,10 @@ class MultiGraphMergeOperator(sc: SparkContext, numPartitions: Int) extends Nary
   def getResult(graphs: Seq[Graph[String, Double]]): Graph[String, Double] = {
     // union all edges of all graphs
     val mergedEdges = sc.union(
-      graphs.map(_.edges.map(e => ((e.srcId, e.dstId), (e.attr, 1))))
-    ) // place each key with same hash on the same node
+      graphs.map(_.edges)
+    ) // map edges to key/value pairs
+      .map(e => ((e.srcId, e.dstId), (e.attr, 1)))
+      // place each key with same hash on the same node
       .partitionBy(new HashPartitioner(numPartitions))
       // add edge weights and count number of edges combined
       .reduceByKey { case (a, b) => (a._1 + b._1, a._2 + b._2) }
