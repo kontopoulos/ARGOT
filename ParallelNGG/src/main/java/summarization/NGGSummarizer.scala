@@ -108,11 +108,11 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int) extends MultiD
     println("Comparing each sentence to the essence...")
     //compare each sentence to the merged graph
     var sentencesToFilter = Array.empty[(Double,String)]
-    val gsc = new GraphSimilarityCalculator
+    val dsc = new DiffSizeGSCalculator(sc)
     indexedSentences.map(_._1.dataStream).collect.foreach{s =>
       val curE = new StringEntity
       curE.setDataString(s)
-      val gs = gsc.getSimilarity(nggc.getGraph(curE,numPartitions),eventEssence)
+      val gs = dsc.getSimilarity(nggc.getGraph(curE,numPartitions),eventEssence)
       sentencesToFilter :+= (gs.getSimilarityComponents("value"),s)
     }
     eventEssence.unpersist()
