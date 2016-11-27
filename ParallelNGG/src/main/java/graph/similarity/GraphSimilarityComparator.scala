@@ -1,7 +1,7 @@
 /**
   * @author Kontopoulos Ioannis
   */
-class GraphSimilarityComparator extends SimilarityComparator {
+class GraphSimilarityComparator extends SimilarityComparator with Serializable {
 
   /**
     * Gets the similarity between two graphs
