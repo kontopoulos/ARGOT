@@ -1,3 +1,7 @@
+package structs
+
+import traits.Atom
+
 /**
  * @author Kontopoulos Ioannis
  */

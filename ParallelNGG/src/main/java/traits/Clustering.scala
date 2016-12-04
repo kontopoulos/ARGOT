@@ -1,3 +1,5 @@
+package traits
+
 /**
   * @author Kontopoulos Ioannis
   */

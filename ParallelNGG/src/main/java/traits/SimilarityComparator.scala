@@ -1,3 +1,7 @@
+package traits
+
+import graph.NGramGraph
+
 /**
   * @author Kontopoulos Ioannis
   */

@@ -1,17 +1,23 @@
+package experiments.optimized
+
 import java.io.FileWriter
 
+import classification.NaiveBayesClassifier
+import graph.similarity.DiffSizeGSCalculator
+import graph.{CachedDistributedNGramGraph, NGramGraph}
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
 import org.apache.spark.mllib.classification.{ClassificationModel, NaiveBayesModel}
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.regression.LabeledPoint
+import org.apache.spark.rdd.RDD
 
 /**
   * @author Kontopoulos Ioannis
   */
 class BinaryFeatureExtractor(sc: SparkContext, numPartitions: Int) {
 
-  def train(classGraphs: Array[Graph[String, Double]], graphs: Array[(Double,NGramGraph)]) = {
+  def train(classGraphs: Array[CachedDistributedNGramGraph], graphs: Array[(Double,NGramGraph)]) = {
     val gsc = new DiffSizeGSCalculator(sc)
     val fStart = System.currentTimeMillis
     //create labeled points from train graphs
@@ -42,7 +48,7 @@ class BinaryFeatureExtractor(sc: SparkContext, numPartitions: Int) {
     model
   }
 
-  def test(model: ClassificationModel, classGraphs: Array[Graph[String, Double]], graphs: Array[(Double,NGramGraph)]) = {
+  def test(model: ClassificationModel, classGraphs: Array[CachedDistributedNGramGraph], graphs: Array[(Double,NGramGraph)]) = {
     val trainedModel = model.asInstanceOf[NaiveBayesModel]
     val gsc = new DiffSizeGSCalculator(sc)
     //create labeled points from test graphs

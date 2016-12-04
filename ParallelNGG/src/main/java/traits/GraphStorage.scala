@@ -1,3 +1,5 @@
+package traits
+
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
 

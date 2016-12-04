@@ -1,5 +1,9 @@
+package experiments.optimized
+
 import java.io.FileWriter
 
+import graph.NGramGraph
+import graph.operators.NGGMergeOperator
 import org.apache.spark.SparkContext
 
 /**
@@ -68,9 +72,8 @@ class BinaryNFoldCrossValidation(sc: SparkContext, numPartitions: Int, numFold: 
     val mo = new NGGMergeOperator(numPartitions)
     val m1start = System.currentTimeMillis
     val classGraph1 = mo.getGraph(mergeGraphs1)
-    classGraph1.edges.persist
-    classGraph1.edges.count
     val m1end = System.currentTimeMillis
+
     val mergeGraphs2 = sc.parallelize(trainingGraphs2,numPartitions).map{
       document =>
         val g = new NGramGraph(3,3)
@@ -79,8 +82,6 @@ class BinaryNFoldCrossValidation(sc: SparkContext, numPartitions: Int, numFold: 
     }
     val m2start = System.currentTimeMillis
     val classGraph2 = mo.getGraph(mergeGraphs2)
-    classGraph2.edges.persist
-    classGraph2.edges.count
     val m2end = System.currentTimeMillis
     println("Merging complete.")
 
@@ -150,8 +151,8 @@ class BinaryNFoldCrossValidation(sc: SparkContext, numPartitions: Int, numFold: 
     tes.close
 
     //free memory of stored edges
-    classGraph1.edges.unpersist()
-    classGraph2.edges.unpersist()
+    classGraph1.clearFromMemory
+    classGraph2.clearFromMemory
     println("Testing complete")
     println("===========================")
     println("Fold Completed = " + (currentFold+1))

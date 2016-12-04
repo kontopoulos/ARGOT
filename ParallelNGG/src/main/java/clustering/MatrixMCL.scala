@@ -1,3 +1,5 @@
+package clustering
+
 import java.io.FileWriter
 
 import org.apache.spark.SparkContext
@@ -5,7 +7,7 @@ import org.apache.spark.mllib.linalg.SparseVector
 import org.apache.spark.mllib.linalg.distributed.{BlockMatrix, IndexedRow, IndexedRowMatrix}
 import org.apache.spark.rdd.RDD
 
-//  TODO keep checking original implementation for mcl improvements
+// TODO keep checking original implementation for mcl improvements
 /**
   * thanks to https://github.com/joandre for markov clustering implementation
   */
@@ -23,7 +25,7 @@ class MatrixMCL(val maxIterations: Int, val expansionRate: Int, val inflationRat
     // Convergence indicator
     var change = 1.0
 
-    var M1:IndexedRowMatrix = normalization(matrix)
+    var M1: IndexedRowMatrix = normalization(matrix)
     //loop until a steady state is reached (convergence)
     while (iter < maxIterations && change > 0) {
       val M2: IndexedRowMatrix = inflation(expansion(M1))

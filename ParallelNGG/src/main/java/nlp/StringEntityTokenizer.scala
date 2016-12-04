@@ -1,4 +1,8 @@
+package nlp
+
 import org.apache.spark.rdd.RDD
+import structs.{DistributedStringEntity, StringAtom}
+import traits.{Atom, Entity, EntityTokenizer}
 
 /**
   * @author Kontopoulos Ioannis

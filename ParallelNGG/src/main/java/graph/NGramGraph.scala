@@ -1,4 +1,6 @@
-import org.apache.spark.graphx.{Edge, Graph}
+package graph
+
+import org.apache.spark.graphx.{Edge}
 
 /**
   * @author Kontopoulos Ioannis
@@ -7,12 +9,7 @@ class NGramGraph(ngram: Int, dwin: Int) {
 
   // variable that holds the edges of the graph
   private var graphEdges: Map[(Long,Long),Double] = Map()
-
-  /**
-    * Gets the number of graph edges
-    * @return number of edges
-    */
-  def numEdges: Long = graphEdges.size
+  var numEdges = 0
 
   /**
     * Gets the edges of the graph
@@ -44,6 +41,7 @@ class NGramGraph(ngram: Int, dwin: Int) {
       .mapValues(e => e.length.toDouble).toArray
 
     graphEdges = edges.toMap
+    numEdges = graphEdges.size
   }
 
   /**
@@ -52,17 +50,6 @@ class NGramGraph(ngram: Int, dwin: Int) {
     */
   def fromFile(document: String): Unit = {
     fromString(scala.io.Source.fromFile(document).mkString)
-  }
-
-  /**
-    * Creates a serial graph from a distributed one
-    * @param graph distributed graph
-    */
-  def fromDistributedGraph(graph: Graph[String,Double]): Unit = {
-    graphEdges = graph.edges.map{
-      e =>
-        ((e.srcId,e.dstId),e.attr)
-    }.collect.toMap
   }
 
 }

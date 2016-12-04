@@ -1,6 +1,10 @@
+package graph
+
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.{Edge, Graph, PartitionStrategy}
 import org.apache.spark.rdd.RDD
+import structs.StringEntity
+import traits.{Entity, GraphCreator}
 
 /**
  * @author Kontopoulos Ioannis

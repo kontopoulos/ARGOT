@@ -1,6 +1,12 @@
+package clustering
+
 import java.io.FileWriter
 
+import graph.WordNGramGraphCreator
+import graph.similarity.GraphSimilarityCalculator
 import org.apache.spark.SparkContext
+import structs.DistributedStringEntity
+import traits.Clustering
 
 /**
   * @author Kontopoulos Ioannis

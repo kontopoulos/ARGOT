@@ -1,12 +1,21 @@
+package summarization
+
 import java.io.FileWriter
 
+import clustering.{DocumentEventClustering, MatrixMCL}
 import gr.demokritos.iit.jinsect.documentModel.comparators.NGramCachedGraphComparator
 import gr.demokritos.iit.jinsect.documentModel.representations.DocumentNGramSymWinGraph
+import graph.NGramGraphCreator
+import graph.operators.{MultiGraphIntersectOperator, MultiGraphMergeOperator}
+import graph.similarity.GraphSimilarityCalculator
+import nlp.OpenNLPSentenceSplitter
 import org.apache.spark.graphx.Graph
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.linalg.distributed.{IndexedRow, IndexedRowMatrix}
 import org.apache.spark.rdd.RDD
+import structs.{DistributedStringEntity, StringAtom, StringEntity}
+import traits.MultiDocumentSummarizer
 
 /**
   * @author Kontopoulos Ioannis
@@ -78,9 +87,10 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int) extends MultiD
     //get the sentence clusters
     val markovClusters = mcl.getMarkovClusters(sMatrix).partitionBy(new HashPartitioner(numPartitions))
     markovClusters.cache
+    val reverseIndex = indexedSentences.map(s => (s._2, s._1))
 
     //retrieve sentence strings based on sentence ids
-    val sentenceClusters = markovClusters.join(indexedSentences.map(s => (s._2, s._1))).map(x => x._2)
+    val sentenceClusters = markovClusters.join(reverseIndex).map(x => x._2)
 
     //intersect the graph sentences of a cluster to create subtopics
     var subtopics = Array.empty[Graph[String,Double]]
@@ -108,7 +118,7 @@ class NGGSummarizer(val sc: SparkContext, val numPartitions: Int) extends MultiD
     println("Comparing each sentence to the essence...")
     //compare each sentence to the merged graph
     var sentencesToFilter = Array.empty[(Double,String)]
-    val dsc = new DiffSizeGSCalculator(sc)
+    val dsc = new GraphSimilarityCalculator
     indexedSentences.map(_._1.dataStream).collect.foreach{s =>
       val curE = new StringEntity
       curE.setDataString(s)

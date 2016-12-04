@@ -1,3 +1,7 @@
+package graph.similarity
+
+import traits.Similarity
+
 /**
  * @author Kontopoulos Ioannis
  */
@@ -13,8 +17,7 @@ class GraphSimilarity(private val sizeSimilarity: Double, private val valueSimil
    * @return map with similarity components
    */
   override def getSimilarityComponents: Map[String, Double] = {
-    val components = Map(("size", sizeSimilarity), ("value", valueSimilarity), ("containment", containmentSimilarity), ("normalized", valueSimilarity/sizeSimilarity))
-    components
+    Map(("size", sizeSimilarity), ("value", valueSimilarity), ("containment", containmentSimilarity), ("normalized", valueSimilarity/sizeSimilarity))
   }
 
   override def toString: String = {

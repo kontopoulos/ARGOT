@@ -1,7 +1,10 @@
+package classification
+
 import org.apache.spark.mllib.classification.{ClassificationModel, NaiveBayes, NaiveBayesModel}
 import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
+import traits.ModelClassifier
 
 /**
   * @author Kontopoulos Ioannis

@@ -1,5 +1,8 @@
+package graph.similarity
+
 import org.apache.spark.HashPartitioner
 import org.apache.spark.graphx.Graph
+import traits.{Similarity, SimilarityCalculator}
 
 /**
  * @author Kontopoulos Ioannis
@@ -24,7 +27,7 @@ class GraphSimilarityCalculator extends SimilarityCalculator with Serializable {
       .partitionBy(new HashPartitioner(g1.edges.getNumPartitions))
     val pairs2 = g2.edges.map(e => ((e.srcId, e.dstId), e.attr))
     val commonEdges = pairs1.join(pairs2)
-    commonEdges.cache
+    commonEdges.persist
     //c holds the number of common edges
     val commonEdgesCount = commonEdges.count
     var vSimil = 0.0

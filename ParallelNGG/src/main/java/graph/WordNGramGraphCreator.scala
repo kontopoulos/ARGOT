@@ -1,5 +1,9 @@
-import org.apache.spark.graphx.{PartitionStrategy, Edge, Graph}
+package graph
+
+import nlp.StringEntityTokenizer
+import org.apache.spark.graphx.{Edge, Graph, PartitionStrategy}
 import org.apache.spark.rdd.RDD
+import traits.{Entity, GraphCreator}
 
 /**
   * @author Kontopoulos Ioannis

@@ -1,7 +1,11 @@
+package nlp
+
 import java.io.FileInputStream
 
 import opennlp.tools.sentdetect.{SentenceDetectorME, SentenceModel}
 import org.apache.spark.rdd.RDD
+import structs.{DistributedStringEntity, StringAtom}
+import traits.{Atom, Entity, SentenceSplitter}
 
 /**
   * @author Kontopoulos Ioannis

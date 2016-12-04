@@ -1,3 +1,7 @@
+package metrics
+
+import traits.Distance
+
 /**
  * @author Kontopoulos Ioannis
  */

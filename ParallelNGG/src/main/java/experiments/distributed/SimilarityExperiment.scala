@@ -1,5 +1,12 @@
+package experiments.distributed
+
+import graph.NGramGraphCreator
+import graph.operators.MultiGraphMergeOperator
+import graph.similarity.GraphSimilarityCalculator
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
+import structs.StringEntity
+import traits.CustomClassifier
 
 /**
  * @author Kontopoulos Ioannis

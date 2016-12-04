@@ -1,4 +1,7 @@
-import org.apache.spark.graphx.{PartitionStrategy, Graph}
+package graph.operators
+
+import org.apache.spark.graphx.{Graph, PartitionStrategy}
+import traits.BinaryGraphOperator
 
 /**
  * @author Kontopoulos Ioannis

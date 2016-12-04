@@ -1,3 +1,7 @@
+package structs
+
+import traits.Entity
+
 /**
  * @author Kontopoulos Ioannis
  */

@@ -1,3 +1,6 @@
+package graph.operators
+
+import graph.{CachedDistributedNGramGraph, NGramGraph}
 import org.apache.spark.HashPartitioner
 import org.apache.spark.graphx.{Edge, Graph}
 import org.apache.spark.rdd.RDD
@@ -14,7 +17,7 @@ class NGGMergeOperator(numPartitions: Int) extends Serializable {
     * @param graphs
     * @return distributed graph
     */
-  def getGraph(graphs: RDD[NGramGraph]): Graph[String, Double] = {
+  def getGraph(graphs: RDD[NGramGraph]): CachedDistributedNGramGraph = {
     val mergedEdges = graphs.flatMap(_.edges).mapValues((_,1))
       // hash partition the edges
       .partitionBy(new HashPartitioner(numPartitions))
@@ -23,9 +26,11 @@ class NGGMergeOperator(numPartitions: Int) extends Serializable {
       // calculate the new edge weights
       .mapValues { case (sum, count) => sum / count }
       // map to GraphX edges
-      .map(e => Edge(e._1._1, e._1._2, e._2))
+      //.map(e => Edge(e._1._1, e._1._2, e._2))
     // return distributed graph
-    Graph.fromEdges(mergedEdges, "merged")
+    //Graph.fromEdges(mergedEdges, "merged")
+    //mergedEdges
+    CachedDistributedNGramGraph(mergedEdges)
   }
 
 }

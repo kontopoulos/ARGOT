@@ -1,5 +1,8 @@
+package graph.operators
+
 import org.apache.spark.{HashPartitioner, SparkContext}
 import org.apache.spark.graphx.{Edge, Graph}
+import traits.NaryOperator
 
 /**
   * @author Kontopoulos Ioannis

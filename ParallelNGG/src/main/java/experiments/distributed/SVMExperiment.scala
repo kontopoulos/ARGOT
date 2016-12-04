@@ -1,26 +1,30 @@
+package experiments.distributed
+
+import classification.SVMClassifier
+import graph.similarity.GraphSimilarityCalculator
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
-import org.apache.spark.mllib.classification.{ClassificationModel, NaiveBayesModel}
+import org.apache.spark.mllib.classification.{ClassificationModel, SVMModel}
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.regression.LabeledPoint
 
 /**
- * Naive Bayes Classifier
+ * Support Vector Machines with Stochastic Gradient Descent Classifier
  * @author Kontopoulos Ioannis
  */
-class NaiveBayesExperiment(val sc: SparkContext, val numPartitions: Int) {
+class SVMExperiment(val sc: SparkContext, val numPartitions: Int) {
 
   /**
-   * Creates Naive Bayes Model based on labeled points from training sets
+   * Creates Support Vector Machines with Stochastic Gradient Descent Model based on labeled points from training sets
    * Each labeled point consists of a label and a feature vector
    * @param classGraphs list of graphs containing the class graphs
    * @param graphs array containing graphs of the training set
    * @return training model
    */
-  def train(classGraphs: Array[Graph[String, Double]], graphs: Array[Graph[String, Double]]*): NaiveBayesModel = {
+  def train(classGraphs: Array[Graph[String, Double]], graphs: Array[Graph[String, Double]]*): SVMModel = {
     //labelsAndFeatures holds the labeled points for the training model
     var labelsAndFeatures = Array.empty[LabeledPoint]
-    val gsc = new DiffSizeGSCalculator(sc)
+    val gsc = new GraphSimilarityCalculator
     //create labeled points from first category
     graphs.head.foreach{ g =>
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
@@ -37,7 +41,7 @@ class NaiveBayesExperiment(val sc: SparkContext, val numPartitions: Int) {
     }
     val parallelLabeledPoints = sc.parallelize(labelsAndFeatures, numPartitions)
     //run training algorithm to build the model
-    val algorithm = new NaiveBayesClassifier
+    val algorithm = new SVMClassifier
     algorithm.train(parallelLabeledPoints)
   }
 
@@ -46,13 +50,13 @@ class NaiveBayesExperiment(val sc: SparkContext, val numPartitions: Int) {
    * @param model classification model
    * @param classGraphs list of graphs containing the class graphs
    * @param graphs array containing graphs of the training set
-   * @return f-measure
+   * @return map with evaluation metrics
    */
   def test(model: ClassificationModel, classGraphs: Array[Graph[String, Double]], graphs: Array[Graph[String, Double]]*): Double = {
-    val trainedModel = model.asInstanceOf[NaiveBayesModel]
+    val trainedModel = model.asInstanceOf[SVMModel]
     //labelsAndFeatures holds the labeled points from the testing set
     var labelsAndFeatures = Array.empty[LabeledPoint]
-    val gsc = new DiffSizeGSCalculator(sc)
+    val gsc = new GraphSimilarityCalculator
     //create labeled points from first category
     graphs.head.foreach{ g =>
       val gs1 = gsc.getSimilarity(g, classGraphs.head)
@@ -69,7 +73,7 @@ class NaiveBayesExperiment(val sc: SparkContext, val numPartitions: Int) {
     }
     val test = sc.parallelize(labelsAndFeatures, numPartitions)
     //compute raw scores on the test set.
-    val algorithm = new NaiveBayesClassifier
+    val algorithm = new SVMClassifier
     algorithm.test(trainedModel, test)
   }
 

@@ -1,6 +1,9 @@
+package summarization
+
 import gr.demokritos.iit.jinsect.documentModel.comparators.NGramCachedGraphComparator
 import gr.demokritos.iit.jinsect.documentModel.representations.DocumentNGramSymWinGraph
 import org.apache.spark.SparkContext
+import traits.SentenceFilter
 
 /**
   * @author Kontopoulos Ioannis

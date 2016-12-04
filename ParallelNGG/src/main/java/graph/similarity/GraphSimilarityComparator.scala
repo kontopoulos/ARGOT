@@ -1,3 +1,8 @@
+package graph.similarity
+
+import graph.NGramGraph
+import traits.{Similarity, SimilarityComparator}
+
 /**
   * @author Kontopoulos Ioannis
   */
