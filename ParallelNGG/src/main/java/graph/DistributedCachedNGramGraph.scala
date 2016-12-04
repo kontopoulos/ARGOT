@@ -5,7 +5,7 @@ import org.apache.spark.rdd.RDD
 /**
   * @author Kontopoulos Ioannis
   */
-case class CachedDistributedNGramGraph(val edges: RDD[((Long,Long),Double)]) {
+case class DistributedCachedNGramGraph(val edges: RDD[((Long,Long),Double)]) {
 
   // store edges to memory
   edges.persist

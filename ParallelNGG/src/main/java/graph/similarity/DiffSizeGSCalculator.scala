@@ -1,6 +1,6 @@
 package graph.similarity
 
-import graph.{CachedDistributedNGramGraph, NGramGraph}
+import graph.{DistributedCachedNGramGraph, NGramGraph}
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
 import org.apache.spark.rdd.RDD
@@ -21,7 +21,7 @@ class DiffSizeGSCalculator(sc: SparkContext) {
     * @param dGraph distributed graph
     * @return similarity of graphs
     */
-  def getSimilarity(smallGraph: NGramGraph, dGraph: CachedDistributedNGramGraph): Similarity = {
+  def getSimilarity(smallGraph: NGramGraph, dGraph: DistributedCachedNGramGraph): Similarity = {
     // number of edges of large graph
     val largeEdgeCount = dGraph.numEdges
     // number of edges of small graph
