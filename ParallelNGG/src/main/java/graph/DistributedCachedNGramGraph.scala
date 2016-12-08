@@ -1,11 +1,12 @@
 package graph
 
+import org.apache.spark.graphx.{Edge, Graph}
 import org.apache.spark.rdd.RDD
 
 /**
   * @author Kontopoulos Ioannis
   */
-case class DistributedCachedNGramGraph(val edges: RDD[((Long,Long),Double)]) {
+case class DistributedCachedNGramGraph(val edges: RDD[((String,String),Double)]) {
 
   // store edges to memory
   edges.persist
@@ -17,6 +18,15 @@ case class DistributedCachedNGramGraph(val edges: RDD[((Long,Long),Double)]) {
     */
   def clearFromMemory: Unit = {
     edges.unpersist()
+  }
+
+  /**
+    * Converts Distributed Cached Graph to Spark Graph
+    * @return Spark Graph
+    */
+  def toSparkGraph: Graph[String,Double] = {
+    val sparkEdges = edges.map(e => Edge(e._1._1.toLong,e._1._2.toLong,e._2))
+    Graph.fromEdges(sparkEdges,"CachedGraph")
   }
 
 }

@@ -1,6 +1,6 @@
 package graph
 
-import org.apache.spark.graphx.{Edge}
+import java.io.IOException
 
 /**
   * @author Kontopoulos Ioannis
@@ -8,14 +8,14 @@ import org.apache.spark.graphx.{Edge}
 class NGramGraph(ngram: Int, dwin: Int) {
 
   // variable that holds the edges of the graph
-  private var graphEdges: Map[(Long,Long),Double] = Map()
+  private var graphEdges: Map[(String,String),Double] = Map()
   var numEdges = 0
 
   /**
     * Gets the edges of the graph
     * @return array of edges
     */
-  def edges: Map[(Long,Long),Double] = graphEdges
+  def edges: Map[(String,String),Double] = graphEdges
 
   /**
     * Creates a graph from given string
@@ -24,19 +24,18 @@ class NGramGraph(ngram: Int, dwin: Int) {
   def fromString(dataString: String): Unit = {
     val vertices = dataString
       .sliding(ngram)
-      .map(atom => (("_" + atom).hashCode.toLong, "_" + atom))
+      .map(atom => (("_" + atom), atom))
       .toArray
 
-    val edges = (vertices ++ Array.fill(dwin)((-1L, null))) //add dummy vertices at the end
+    val edges = (vertices ++ Array.fill(dwin)(("", null))) //add dummy vertices at the end
       .sliding(dwin + 1) //slide over dwin + 1 vertices at the time
       .flatMap(arr => {
       val (srcId, _) = arr.head //take first
       // generate 2n edges
       arr.tail.flatMap{case (dstId, _) =>
-        Array(Edge(srcId, dstId, 1.0), Edge(dstId, srcId, 1.0))
-      }}.filter(e => e.srcId != -1L & e.dstId != -1L)) //drop dummies
+        Array(((srcId, dstId), 1.0), ((dstId, srcId), 1.0))
+      }}.filter(e => e._1._1 != "" & e._1._2 != "")) //drop dummies
       .toArray
-      .map(e => ((e.srcId,e.dstId),e.attr))
       .groupBy(e => e._1)
       .mapValues(e => e.length.toDouble).toArray
 
@@ -49,7 +48,13 @@ class NGramGraph(ngram: Int, dwin: Int) {
     * @param document file
     */
   def fromFile(document: String): Unit = {
-    fromString(scala.io.Source.fromFile(document).mkString)
+    try {
+      fromString(scala.io.Source.fromFile(document).mkString)
+    }
+    catch {
+      case e: IOException => println(s"File not found: $document")
+      case ex: Exception => println(ex.getMessage)
+    }
   }
 
 }
