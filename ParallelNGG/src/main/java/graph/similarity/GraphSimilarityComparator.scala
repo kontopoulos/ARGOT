@@ -24,13 +24,13 @@ class GraphSimilarityComparator extends SimilarityComparator with Serializable {
     // get the common edges hash
     val commonEdgesHash = g1.edges.keySet.intersect(g2.edges.keySet)
     // get the edge weights of both graphs for the common edges
-    val commonEdges = commonEdgesHash.map(e => (e,(g1.edges(e),g2.edges(e))))
+    val commonEdges = commonEdgesHash.map(e => (e,(g1.edges(e),g2.edges(e)))).toVector
     // number of common edges
     val commonEdgesCount = commonEdges.size
     var vSimil = 0.0
     //if there are common edges
     if (commonEdgesCount != 0) {
-      vSimil = commonEdges.toVector.map(e => Math.min(e._2._1, e._2._2)/Math.max(e._2._1, e._2._2)).sum/Math.max(g1EdgeCount,g2EdgeCount)
+      vSimil = commonEdges.map(e => Math.min(e._2._1, e._2._2)/Math.max(e._2._1, e._2._2)).sum/Math.max(g1EdgeCount,g2EdgeCount)
     }
     //for each common edge add 1/min to a sum
     val cSimil = (1.toDouble/Math.min(g1EdgeCount, g2EdgeCount))*commonEdgesCount
