@@ -1,8 +1,9 @@
 package graph.operators
 
-import graph.{DistributedCachedNGramGraph, NGramGraph}
+import graph.DistributedCachedNGramGraph
 import org.apache.spark.HashPartitioner
 import org.apache.spark.rdd.RDD
+import traits.DocumentGraph
 
 /**
   * @author Kontopoulos Ioannis
@@ -16,7 +17,7 @@ class NGGMergeOperator(numPartitions: Int) extends Serializable {
     * @param graphs
     * @return distributed graph
     */
-  def getGraph(graphs: RDD[NGramGraph]): DistributedCachedNGramGraph = {
+  def getGraph(graphs: RDD[DocumentGraph]): DistributedCachedNGramGraph = {
     val mergedEdges = graphs.flatMap(_.edges).mapValues((_,1))
       // partition the edges by hash
       .partitionBy(new HashPartitioner(numPartitions))

@@ -1,7 +1,6 @@
 package graph.similarity
 
-import graph.NGramGraph
-import traits.{Similarity, SimilarityComparator}
+import traits.{DocumentGraph, Similarity, SimilarityComparator}
 
 /**
   * @author Kontopoulos Ioannis
@@ -14,7 +13,7 @@ class GraphSimilarityComparator extends SimilarityComparator with Serializable {
     * @param g2 second graph
     * @return similarity of graphs
     */
-  override def getSimilarity(g1: NGramGraph, g2: NGramGraph): Similarity = {
+  override def getSimilarity(g1: DocumentGraph, g2: DocumentGraph): Similarity = {
     //number of edges of graph1
     val g1EdgeCount = g1.numEdges
     //number of edges of graph2

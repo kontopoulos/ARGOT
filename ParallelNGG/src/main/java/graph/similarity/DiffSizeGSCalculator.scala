@@ -1,15 +1,13 @@
 package graph.similarity
 
-import graph.{DistributedCachedNGramGraph, NGramGraph}
+import graph.DistributedCachedNGramGraph
 import org.apache.spark.SparkContext
-import org.apache.spark.graphx.Graph
-import org.apache.spark.rdd.RDD
-import traits.Similarity
+import traits.{DocumentGraph, Similarity}
 
 /**
   * This is a special case of similarity calculator.
   * It is used when we want to compare two graphs of different size.
-  * Specifically, it is used to compare a serial graph and a distributed one.
+  * Specifically, it is used to compare a serial graph and a distributed cached one.
   * @author Kontopoulos Ioannis
   */
 class DiffSizeGSCalculator(sc: SparkContext) {
@@ -21,7 +19,7 @@ class DiffSizeGSCalculator(sc: SparkContext) {
     * @param dGraph distributed graph
     * @return similarity of graphs
     */
-  def getSimilarity(smallGraph: NGramGraph, dGraph: DistributedCachedNGramGraph): Similarity = {
+  def getSimilarity(smallGraph: DocumentGraph, dGraph: DistributedCachedNGramGraph): Similarity = {
     // number of edges of large graph
     val largeEdgeCount = dGraph.numEdges
     // number of edges of small graph
@@ -30,8 +28,6 @@ class DiffSizeGSCalculator(sc: SparkContext) {
     val sSimil = Math.min(smallEdgeCount, largeEdgeCount).toDouble/Math.max(smallEdgeCount, largeEdgeCount)
     // map edges to key/value pairs and broadcast edges of small graph to the cluster
     val smallGraphEdges = sc.broadcast(smallGraph.edges)
-    // map edges of the large graph to key/value pairs
-    //val largeGraphEdges = dGraph.edges.map(e => ((e.srcId, e.dstId), e.attr))
     // extract the common edges of the graphs
     val commonEdges = dGraph.edges
       // take edges that exist in both graphs

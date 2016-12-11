@@ -2,32 +2,28 @@ package graph
 
 import java.io.IOException
 
+import traits.DocumentGraph
+
 /**
   * @author Kontopoulos Ioannis
   */
-class NGramGraph(ngram: Int, dwin: Int) {
+class NGramGraph(ngram: Int, dwin: Int) extends DocumentGraph {
 
   // variable that holds the edges of the graph
-  private var graphEdges: Map[(String,String),Double] = Map()
-  var numEdges = 0
-
-  /**
-    * Gets the edges of the graph
-    * @return array of edges
-    */
-  def edges: Map[(String,String),Double] = graphEdges
+  override var edges: Map[(String,String),Double] = Map()
+  override var numEdges = 0
 
   /**
     * Creates a graph from given string
     * @param dataString string text
     */
-  def fromString(dataString: String): Unit = {
+  override def fromString(dataString: String): Unit = {
     val vertices = dataString
       .sliding(ngram)
       .map(atom => (("_" + atom), atom))
       .toArray
 
-    val edges = (vertices ++ Array.fill(dwin)(("", null))) //add dummy vertices at the end
+    val createdEdges = (vertices ++ Array.fill(dwin)(("", null))) //add dummy vertices at the end
       .sliding(dwin + 1) //slide over dwin + 1 vertices at the time
       .flatMap(arr => {
       val (srcId, _) = arr.head //take first
@@ -39,8 +35,8 @@ class NGramGraph(ngram: Int, dwin: Int) {
       .groupBy(e => e._1)
       .mapValues(e => e.length.toDouble).toArray
 
-    graphEdges = edges.toMap
-    numEdges = graphEdges.size
+    edges = createdEdges.toMap
+    numEdges = edges.size
   }
 
   /**
