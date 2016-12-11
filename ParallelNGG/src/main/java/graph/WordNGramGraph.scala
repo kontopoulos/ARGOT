@@ -57,4 +57,20 @@ class WordNGramGraph(ngram: Int, dwin: Int) {
     }
   }
 
+  /**
+    * Saves graph to dot format file
+    * @param fileName
+    */
+  def saveToDotFormat(fileName: String): Unit = {
+    val writer = new java.io.FileWriter(s"$fileName.dot")
+    writer.write("digraph nGramGraph {\n")
+    val formattedEdges = edges.map{
+      case (vertices,weight) =>
+        s"\t${vertices._1.replaceAll("[ !@#$%^&*()_+-={}|,.<>/?:;']", "_")} -> ${vertices._2.replaceAll("[ !@#$%^&*()_+-={}|,.<>/?:;']", "_")} [label=$weight];"
+    }.mkString("\n")
+    writer.write(formattedEdges)
+    writer.write("\n}")
+    writer.close
+  }
+
 }
