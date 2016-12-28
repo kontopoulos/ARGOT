@@ -17,18 +17,16 @@ import graph.NGramGraph
 
 ...
 
-// Creates a dummy graph object with ngram and dwin size equal to 3 
-val g = new NGramGraph(3,3)
-// Create the graph
-g.fromString(Hello World!)
+	// Creates a dummy graph object with ngram and dwin size equal to 3 
+	val g = new NGramGraph(3,3)
+	// Create the graph
+	g.fromString(Hello World!)
 
 ```
 
 * Create an n-gram graph from a file 
 
 ```scala
-
-...
 
 import graph.NGramGraph
 
@@ -65,8 +63,6 @@ import org.apache.spark.rdd.RDD
 * Compare a small graph with a distributed one, extracting their similarity 
 
 ```scala
-
-...
 
 import graph.similarity.DiffSizeGSCalculator
 import org.apache.spark.SparkContext
@@ -113,7 +109,7 @@ Current version/branch of ARGOT contains the following:
 - The n-gram graphs (NGG) representations. See [thesis, Chapter 3](http://www.iit.demokritos.gr/~ggianna/thesis.pdf) of George Giannakopoulos for more info.
 - The NGG operators update/merge, intersect, allNotIn, etc. See [thesis, Chapter 4](http://www.iit.demokritos.gr/~ggianna/thesis.pdf) of George Giannakopoulos for more info.
 - A text tokenizer (extraction of n-grams, words, sentences from a text etc.).
-- Feature extraction algorithm for document classification.
+- Feature extraction algorithm for document classification with the use of n-gram graphs.
 - Classifiers (Naive Bayes, SVM (current algorithm supports binary classification only)).
 - Markov clustering algorithm for similarity matrices. Many thanks to user [joandre](https://github.com/joandre/).
 - A simple clustering algorithm for documents based on graph similarities (under construction).
