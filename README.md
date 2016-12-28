@@ -19,9 +19,8 @@ import graph.NGramGraph
 
 // Creates a dummy graph object with ngram and dwin size equal to 3 
 val g = new NGramGraph(3,3)
-
 // Create the graph
-g.fromString(Hello World!);
+g.fromString(Hello World!)
 
 ```
 
