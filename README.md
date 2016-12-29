@@ -101,7 +101,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 	// run the experiment with 8 partitions
 	exp.run(8)
     // or you can choose to classify on one random fold only
-	exp.classify(numPartitions)
+	exp.classify(8)
 
 ```
 
