@@ -33,14 +33,14 @@ object Analyze {
   /**
     * Updates the experiment start time
     */
-  def initiate: Unit = {
+  def initiateExecution: Unit = {
     expStartTime = System.currentTimeMillis
   }
 
   /**
     * Updates the experiment end time
     */
-  def terminate: Unit = {
+  def terminateExecution: Unit = {
     expEndTime = System.currentTimeMillis
     totalExecutionTime = expEndTime - expStartTime
   }

@@ -2,7 +2,7 @@
 ARGOT is an Apache spaRk based text mininG tOolkiT and library that supports and demonstrates the use of n-gram graphs within Natural Language Processing applications.
 
 ## Specifications
-* [Apache Spark](http://spark.apache.org/) 2.0.2 ([GraphX](http://spark.apache.org/graphx/), [MLlib](http://spark.apache.org/mllib/))
+* [Apache Spark](http://spark.apache.org/) 2.0.1 ([GraphX](http://spark.apache.org/graphx/), [MLlib](http://spark.apache.org/mllib/))
 * [Scala](https://www.scala-lang.org/) 2.11.7
 * Maven Project
 
@@ -96,9 +96,12 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 	// create an instance of the experiment class
 	// directory contains subdirectories with classes, each containing their corresponding texts
-	val exp = new CrossValidation(sc,"docs",10) // spark context, directory to classify, number of folds
+	// options for classifier are: "Random Forest","Naive Bayes","SVMBinary","SVMMulticlass"
+	val exp = new CrossValidation(sc,"Random Forest","docs",10) // spark context, classification algorithm, directory to classify, number of folds
 	// run the experiment with 8 partitions
 	exp.run(8)
+    // or you can choose to classify on one random fold only
+	exp.classify(numPartitions)
 
 ```
 
@@ -110,7 +113,9 @@ Current version/branch of ARGOT contains the following:
 - The NGG operators update/merge, intersect, allNotIn, etc. See [thesis, Chapter 4](http://www.iit.demokritos.gr/~ggianna/thesis.pdf) of George Giannakopoulos for more info.
 - A text tokenizer (extraction of n-grams, words, sentences from a text etc.).
 - Feature extraction algorithm for document classification with the use of n-gram graphs.
-- Classifiers (Naive Bayes, SVM (current algorithm supports binary classification only)).
+- Naive Bayes Multinomial Classifier.
+- Support Vector Machines with Stochastic Gradient Descent Classifier (binary,multi-class).
+- Random Forest Classifier.
 - Markov clustering algorithm for similarity matrices. Many thanks to user [joandre](https://github.com/joandre/).
 - A simple clustering algorithm for documents based on graph similarities (under construction).
 - A multiple document summarizer (under construction).

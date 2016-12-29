@@ -3,15 +3,16 @@ package experiments
 import analytics.Analyze
 import graph.NGramGraph
 import graph.operators.MultipleGraphMergeOperator
-import ml.classification.{NGramGraphFeatureExtractor, NaiveBayesClassifier}
+import ml.classification._
 import org.apache.spark.SparkContext
+import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 import traits.DocumentGraph
 
 /**
   * @author Kontopoulos Ioannis
   */
-class CrossValidation(sc: SparkContext, directory: String, numOfFolds: Int) {
+class CrossValidation(sc: SparkContext, selectedClassifier: String, directory: String, numOfFolds: Int) {
 
   // read documents per class based on directory given
   val documentsPerClass = getListOfSubDirectories(directory)
@@ -33,7 +34,7 @@ class CrossValidation(sc: SparkContext, directory: String, numOfFolds: Int) {
     * @param currentFold
     * @param numPartitions
     */
-  def classifyOnFold(currentFold: Int, numPartitions: Int): Unit = {
+  private def classifyOnFold(currentFold: Int, numPartitions: Int): Unit = {
     // file to export statistics and results
     val resultsFileName = s"experiment${numPartitions}_$currentFold.txt"
 
@@ -57,7 +58,7 @@ class CrossValidation(sc: SparkContext, directory: String, numOfFolds: Int) {
       .map(_.swap)
       .map{case (index,documents) => (index.toDouble,documents)}
 
-    Analyze.initiate
+    Analyze.initiateExecution
     println("Merging graphs...")
     Analyze.writeLog("Merging graphs...")
     val mo = new MultipleGraphMergeOperator(numPartitions)
@@ -113,17 +114,11 @@ class CrossValidation(sc: SparkContext, directory: String, numOfFolds: Int) {
     Analyze.end
     Analyze.writeTime("Testing",resultsFileName)
 
-    val classifier = new NaiveBayesClassifier
     Analyze.start
-    // train Naive Bayes model
-    println("Running classification algorithm...")
-    Analyze.writeLog("Running classification algorithm...")
-    val model = classifier.train(trainingFeatures)
-    // test the model and get the accuracy
-    val accuracy = classifier.test(model,testingFeatures)
+    val accuracy = runClassificationAlgorithm(trainingFeatures,testingFeatures)
     Analyze.end
-    Analyze.terminate
     Analyze.writeTime("ML",resultsFileName)
+    Analyze.terminateExecution
     Analyze.writeTotalTime("Total",resultsFileName)
 
     // free memory from distributed graphs
@@ -139,6 +134,49 @@ class CrossValidation(sc: SparkContext, directory: String, numOfFolds: Int) {
     Analyze.writeFeaturesToFile(currentFold.toString, trainingFeatures.union(testingFeatures))
     println("Experiment completed.")
     Analyze.writeLog("Experiment completed.")
+  }
+
+  /**
+    * Classifies on one random fold only
+    * @param numPartitions
+    */
+  def classify(numPartitions: Int): Unit = {
+    val r = scala.util.Random
+    val fold = r.nextInt(numOfFolds)
+    classifyOnFold(fold,numPartitions)
+  }
+
+  /**
+    * Runs selected classification algorithm
+    * @param train
+    * @param test
+    * @return accuracy
+    */
+  private def runClassificationAlgorithm(train: RDD[LabeledPoint], test: RDD[LabeledPoint]): Double = {
+    println(s"Running classification algorithm [$selectedClassifier]...")
+    Analyze.writeLog(s"Running classification algorithm [$selectedClassifier]...")
+    selectedClassifier match {
+      case "Naive Bayes" => {
+        val classifier = new NaiveBayesClassifier
+        val model = classifier.train(train)
+        return classifier.test(model,test)
+      }
+      case "SVMbinary" => {
+        val classifier = new SVMBinaryClassifier
+        val model = classifier.train(train)
+        return classifier.test(model,test)
+      }
+      case "SVMMulticlass" => {
+        val classifier = new SVMMulticlassClassifier
+        val model = classifier.train(train)
+        return classifier.test(model,test)
+      }
+      case "Random Forest" => {
+        val classifier = new RandomForestClassifier
+        val model = classifier.train(train)
+        return classifier.test(model,test)
+      }
+    }
   }
 
   /**

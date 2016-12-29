@@ -10,20 +10,20 @@ object Starter {
   def main(args: Array[String]) {
     // Apache spaRk based text mininG tOolkiT
     val conf = new SparkConf().setAppName("ARGOT")
-      //.setMaster("local[*]")
+      .setMaster("local[*]")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     val sc = new SparkContext(conf)
 
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("akka").setLevel(Level.OFF)
 
-    val numPartitions = args.head.toInt
+    val numPartitions = 2//args.head.toInt
 
     try {
-      // spark context, directory with classes, number of folds
-      val exp = new CrossValidation(sc,"docs",10)
-      // current fold, number of partitions to use
-      exp.classifyOnFold(0, numPartitions)
+      // spark context, chosen classifier, directory with classes, number of folds
+      val exp = new CrossValidation(sc,"Random Forest","docs",10)
+      // number of partitions to use
+      exp.classify(numPartitions)
     }
     catch {
       case e: Exception =>
