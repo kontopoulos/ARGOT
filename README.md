@@ -6,8 +6,6 @@ ARGOT is an Apache spaRk based text mininG tOolkiT and library that supports and
 * [Scala](https://www.scala-lang.org/) 2.11.7
 * Maven Project
 
-## Main concepts
-
 ## Code Snippets
 * Create an n-gram graph from a string:
 
