@@ -1,6 +1,8 @@
 # ARGOT
 ARGOT is an Apache spaRk based text mininG tOolkiT and library that supports and demonstrates the use of n-gram graphs within Natural Language Processing applications.
 
+Argot is a french word and it translates in English as slang.
+
 ## Specifications
 * [Apache Spark](http://spark.apache.org/) 2.0.1 ([GraphX](http://spark.apache.org/graphx/), [MLlib](http://spark.apache.org/mllib/))
 * [Scala](https://www.scala-lang.org/) 2.11.7
@@ -43,7 +45,6 @@ import graph.NGramGraph
 import graph.operators.MultipleGraphMergeOperator
 import traits.DocumentGraph
 import org.apache.spark.rdd.RDD
-
 
 ...
 
