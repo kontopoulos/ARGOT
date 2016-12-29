@@ -96,8 +96,9 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 	// create an instance of the experiment class
 	// directory contains subdirectories with classes, each containing their corresponding texts
-	// options for classifier are: "Random Forest","Naive Bayes","SVMBinary","SVMMulticlass"
-	val exp = new CrossValidation(sc,"Random Forest","docs",10) // spark context, classification algorithm, directory to classify, number of folds
+	// options for classifiers are: "Random Forest","Naive Bayes","SVMBinary","SVMMulticlass"
+	// spark context, classification algorithm, directory to classify, number of folds
+	val exp = new CrossValidation(sc,"Random Forest","docs",10)
 	// run the experiment with 8 partitions
 	exp.run(8)
     // or you can choose to classify on one random fold only
