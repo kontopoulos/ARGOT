@@ -51,7 +51,7 @@ import org.apache.spark.rdd.RDD
 	// RDD of document graphs
 	// A document graph may be an n-gram graph, a word n-gram graph
 	// or any other graph that extends the DocumentGraph trait
-	val manyGraphs // RDD[DocumentGraph]
+	val manyGraphs: RDD[DocumentGraph] = ...
 	// create an instance of the operator with 8 partitions
 	val merger = new MultipleGraphMergeOperator(8)
 	// create the distributed graph
