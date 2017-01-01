@@ -2,19 +2,19 @@ package nlp
 
 import org.apache.spark.rdd.RDD
 import structs.DocumentAtom
-import traits.{Atom, EntityTokenizer}
+import traits.Atom
 
 /**
   * @author Kontopoulos Ioannis
   */
-class DocumentEntityTokenizer extends EntityTokenizer with Serializable {
+class DocumentTokenizer extends Serializable {
 
   /**
     * Returns an RDD with the words of the entity
     * @param partitionedDocument document to be tokenized
     * @return rdd of atoms
     */
-  override def getTokens(partitionedDocument: RDD[String]): RDD[Atom] = {
+  def getTokens(partitionedDocument: RDD[String]): RDD[Atom] = {
     val tokens: RDD[Atom] = partitionedDocument
       //split each line by spaces
       .flatMap(line => line.split("\\s+"))
